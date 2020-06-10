@@ -17,17 +17,16 @@
 
 package net.devh.boot.grpc.client.autoconfigure;
 
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
 import brave.grpc.GrpcTracing;
 import net.devh.boot.grpc.client.interceptor.GlobalClientInterceptorConfigurer;
 import net.devh.boot.grpc.client.interceptor.OrderedClientInterceptor;
 import net.devh.boot.grpc.common.autoconfigure.GrpcCommonTraceAutoConfiguration;
 import net.devh.boot.grpc.common.util.InterceptorOrder;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * The configuration used to configure brave's tracing for grpc.

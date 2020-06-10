@@ -17,23 +17,7 @@
 
 package net.devh.boot.grpc.client.metric;
 
-import static net.devh.boot.grpc.common.metric.MetricConstants.METRIC_NAME_CLIENT_PROCESSING_DURATION;
-import static net.devh.boot.grpc.common.metric.MetricConstants.METRIC_NAME_CLIENT_REQUESTS_SENT;
-import static net.devh.boot.grpc.common.metric.MetricConstants.METRIC_NAME_CLIENT_RESPONSES_RECEIVED;
-import static net.devh.boot.grpc.common.metric.MetricUtils.prepareCounterFor;
-import static net.devh.boot.grpc.common.metric.MetricUtils.prepareTimerFor;
-
-import java.util.function.Function;
-import java.util.function.UnaryOperator;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.annotation.Order;
-
-import io.grpc.CallOptions;
-import io.grpc.Channel;
-import io.grpc.ClientCall;
-import io.grpc.ClientInterceptor;
-import io.grpc.MethodDescriptor;
+import io.grpc.*;
 import io.grpc.Status.Code;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -41,6 +25,15 @@ import io.micrometer.core.instrument.Timer;
 import net.devh.boot.grpc.client.interceptor.GrpcGlobalClientInterceptor;
 import net.devh.boot.grpc.common.metric.AbstractMetricCollectingInterceptor;
 import net.devh.boot.grpc.common.util.InterceptorOrder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.annotation.Order;
+
+import java.util.function.Function;
+import java.util.function.UnaryOperator;
+
+import static net.devh.boot.grpc.common.metric.MetricConstants.*;
+import static net.devh.boot.grpc.common.metric.MetricUtils.prepareCounterFor;
+import static net.devh.boot.grpc.common.metric.MetricUtils.prepareTimerFor;
 
 /**
  * A gRPC client interceptor that will collect metrics for micrometer.
@@ -66,14 +59,15 @@ public class MetricCollectingClientInterceptor extends AbstractMetricCollectingI
      * Creates a new gRPC client interceptor that will collect metrics into the given {@link MeterRegistry} and uses the
      * given customizer to configure the {@link Counter}s and {@link Timer}s.
      *
-     * @param registry The registry to use.
-     * @param counterCustomizer The unary function that can be used to customize the created counters.
-     * @param timerCustomizer The unary function that can be used to customize the created timers.
+     * @param registry              The registry to use.
+     * @param counterCustomizer     The unary function that can be used to customize the created counters.
+     * @param timerCustomizer       The unary function that can be used to customize the created timers.
      * @param eagerInitializedCodes The status codes that should be eager initialized.
      */
     public MetricCollectingClientInterceptor(final MeterRegistry registry,
-            final UnaryOperator<Counter.Builder> counterCustomizer,
-            final UnaryOperator<Timer.Builder> timerCustomizer, final Code... eagerInitializedCodes) {
+                                             final UnaryOperator<Counter.Builder> counterCustomizer,
+                                             final UnaryOperator<Timer.Builder> timerCustomizer,
+                                             final Code... eagerInitializedCodes) {
         super(registry, counterCustomizer, timerCustomizer, eagerInitializedCodes);
     }
 
@@ -83,7 +77,7 @@ public class MetricCollectingClientInterceptor extends AbstractMetricCollectingI
                 prepareCounterFor(method,
                         METRIC_NAME_CLIENT_REQUESTS_SENT,
                         "The total number of requests sent"))
-                .register(this.registry);
+                                     .register(this.registry);
     }
 
     @Override
@@ -92,7 +86,7 @@ public class MetricCollectingClientInterceptor extends AbstractMetricCollectingI
                 prepareCounterFor(method,
                         METRIC_NAME_CLIENT_RESPONSES_RECEIVED,
                         "The total number of responses received"))
-                .register(this.registry);
+                                     .register(this.registry);
     }
 
     @Override
@@ -105,7 +99,7 @@ public class MetricCollectingClientInterceptor extends AbstractMetricCollectingI
 
     @Override
     public <Q, A> ClientCall<Q, A> interceptCall(final MethodDescriptor<Q, A> methodDescriptor,
-            final CallOptions callOptions, final Channel channel) {
+                                                 final CallOptions callOptions, final Channel channel) {
         final MetricSet metrics = metricsFor(methodDescriptor);
         return new MetricCollectingClientCall<>(
                 channel.newCall(methodDescriptor, callOptions),

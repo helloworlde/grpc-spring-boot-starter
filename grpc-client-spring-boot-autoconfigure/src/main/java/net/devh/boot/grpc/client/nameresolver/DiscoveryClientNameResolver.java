@@ -17,9 +17,14 @@
 
 package net.devh.boot.grpc.client.nameresolver;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
-import static java.util.Objects.requireNonNull;
+import com.google.common.collect.Lists;
+import io.grpc.*;
+import io.grpc.internal.SharedResourceHolder;
+import lombok.extern.slf4j.Slf4j;
+import net.devh.boot.grpc.common.util.GrpcUtils;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.util.CollectionUtils;
 
 import java.net.InetSocketAddress;
 import java.util.List;
@@ -27,20 +32,9 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.util.CollectionUtils;
-
-import com.google.common.collect.Lists;
-
-import io.grpc.Attributes;
-import io.grpc.EquivalentAddressGroup;
-import io.grpc.NameResolver;
-import io.grpc.Status;
-import io.grpc.SynchronizationContext;
-import io.grpc.internal.SharedResourceHolder;
-import lombok.extern.slf4j.Slf4j;
-import net.devh.boot.grpc.common.util.GrpcUtils;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
+import static java.util.Objects.requireNonNull;
 
 /**
  * The DiscoveryClientNameResolver resolves the service hosts and their associated gRPC port using the channel's name
@@ -72,14 +66,14 @@ public class DiscoveryClientNameResolver extends NameResolver {
     /**
      * Creates a new DiscoveryClientNameResolver.
      *
-     * @param name The name of the service to look up.
-     * @param client The client used to look up the service addresses.
-     * @param args The name resolver args.
+     * @param name             The name of the service to look up.
+     * @param client           The client used to look up the service addresses.
+     * @param args             The name resolver args.
      * @param executorResource The executor resource.
-     * @param externalCleaner The optional cleaner used during {@link #shutdown()}
+     * @param externalCleaner  The optional cleaner used during {@link #shutdown()}
      */
     public DiscoveryClientNameResolver(final String name, final DiscoveryClient client, final Args args,
-            final SharedResourceHolder.Resource<Executor> executorResource, final Runnable externalCleaner) {
+                                       final SharedResourceHolder.Resource<Executor> executorResource, final Runnable externalCleaner) {
         this.name = name;
         this.client = client;
         this.syncContext = requireNonNull(args.getSynchronizationContext(), "syncContext");
@@ -161,7 +155,7 @@ public class DiscoveryClientNameResolver extends NameResolver {
         /**
          * Creates a new Resolve that stores a snapshot of the relevant states of the resolver.
          *
-         * @param listener The listener to send the results to.
+         * @param listener     The listener to send the results to.
          * @param instanceList The current server instance list.
          */
         Resolve(final Listener2 listener, final List<ServiceInstance> instanceList) {
@@ -176,7 +170,7 @@ public class DiscoveryClientNameResolver extends NameResolver {
                 resultContainer.set(resolveInternal());
             } catch (final Exception e) {
                 this.savedListener.onError(Status.UNAVAILABLE.withCause(e)
-                        .withDescription("Failed to update server list for " + DiscoveryClientNameResolver.this.name));
+                                                             .withDescription("Failed to update server list for " + DiscoveryClientNameResolver.this.name));
                 resultContainer.set(Lists.newArrayList());
             } finally {
                 DiscoveryClientNameResolver.this.syncContext.execute(() -> {
@@ -193,7 +187,7 @@ public class DiscoveryClientNameResolver extends NameResolver {
          * Do the actual update checks and resolving logic.
          *
          * @return The new service instance list that is used to connect to the gRPC server or null if the old ones
-         *         should be used.
+         * should be used.
          */
         private List<ServiceInstance> resolveInternal() {
             final String name = DiscoveryClientNameResolver.this.name;
@@ -224,8 +218,8 @@ public class DiscoveryClientNameResolver extends NameResolver {
                 return Lists.newArrayList();
             } else {
                 this.savedListener.onResult(ResolutionResult.newBuilder()
-                        .setAddresses(targets)
-                        .build());
+                                                            .setAddresses(targets)
+                                                            .build());
                 log.info("Done updating server list for {}", name);
                 return newInstanceList;
             }

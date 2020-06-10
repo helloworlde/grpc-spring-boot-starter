@@ -17,14 +17,13 @@
 
 package net.devh.boot.grpc.client.autoconfigure;
 
+import net.devh.boot.grpc.client.nameresolver.DiscoveryClientResolverFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
-
-import net.devh.boot.grpc.client.nameresolver.DiscoveryClientResolverFactory;
 
 @Configuration
 @ConditionalOnBean(DiscoveryClient.class)

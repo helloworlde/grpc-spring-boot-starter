@@ -17,24 +17,22 @@
 
 package net.devh.boot.grpc.client.nameresolver;
 
-import static java.util.Objects.requireNonNull;
-
-import java.net.URI;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
-
-import javax.annotation.Nullable;
-import javax.annotation.PreDestroy;
-
+import io.grpc.NameResolver;
+import io.grpc.NameResolverProvider;
+import io.grpc.internal.GrpcUtil;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.client.discovery.event.HeartbeatEvent;
 import org.springframework.cloud.client.discovery.event.HeartbeatMonitor;
 import org.springframework.context.event.EventListener;
 
-import io.grpc.NameResolver;
-import io.grpc.NameResolverProvider;
-import io.grpc.internal.GrpcUtil;
+import javax.annotation.Nullable;
+import javax.annotation.PreDestroy;
+import java.net.URI;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * A name resolver factory that will create a {@link DiscoveryClientNameResolver} based on the target uri.
