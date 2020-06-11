@@ -31,12 +31,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static java.util.Objects.requireNonNull;
 
 /**
+ * 根据应用名称获取实例
  * The DiscoveryClientNameResolver resolves the service hosts and their associated gRPC port using the channel's name
  * and spring's cloud {@link DiscoveryClient}. The ports are extracted from the {@code gRPC.port} metadata.
  *
@@ -98,6 +100,9 @@ public class DiscoveryClientNameResolver extends NameResolver {
         resolve();
     }
 
+    /**
+     * 刷新实例
+     */
     @Override
     public void refresh() {
         checkState(this.listener != null, "not started");
@@ -118,6 +123,9 @@ public class DiscoveryClientNameResolver extends NameResolver {
         });
     }
 
+    /**
+     * 根据名称获取实例
+     */
     private void resolve() {
         log.debug("Scheduled resolve for {}", this.name);
         if (this.resolving) {
@@ -184,6 +192,7 @@ public class DiscoveryClientNameResolver extends NameResolver {
         }
 
         /**
+         * 执行获取和更新实例的逻辑
          * Do the actual update checks and resolving logic.
          *
          * @return The new service instance list that is used to connect to the gRPC server or null if the old ones
@@ -191,6 +200,7 @@ public class DiscoveryClientNameResolver extends NameResolver {
          */
         private List<ServiceInstance> resolveInternal() {
             final String name = DiscoveryClientNameResolver.this.name;
+            // 从注册中心获取实例
             final List<ServiceInstance> newInstanceList =
                     DiscoveryClientNameResolver.this.client.getInstances(name);
             log.debug("Got {} candidate servers for {}", newInstanceList.size(), name);
@@ -226,6 +236,7 @@ public class DiscoveryClientNameResolver extends NameResolver {
         }
 
         /**
+         * 获取 gRPC 接口
          * Extracts the gRPC server port from the given service instance.
          *
          * @param instance The instance to extract the port from.
@@ -250,30 +261,48 @@ public class DiscoveryClientNameResolver extends NameResolver {
         }
 
         /**
+         * 判断是否需要更新连接
          * Checks whether this instance should update its connections.
          *
          * @param newInstanceList The new instances that should be compared to the stored ones.
          * @return True, if the given instance list contains different entries than the stored ones.
          */
         private boolean needsToUpdateConnections(final List<ServiceInstance> newInstanceList) {
+            // 如果列表大小发生变化，则更新
             if (this.savedInstanceList.size() != newInstanceList.size()) {
                 return true;
             }
-            for (final ServiceInstance instance : this.savedInstanceList) {
-                final int port = getGRPCPort(instance);
-                boolean isSame = false;
-                for (final ServiceInstance newInstance : newInstanceList) {
-                    final int newPort = getGRPCPort(newInstance);
-                    if (newInstance.getHost().equals(instance.getHost())
-                            && port == newPort) {
-                        isSame = true;
-                        break;
-                    }
+            // 遍历原有实例和新实例，如果发生变化则返回 true
+            //TODO 当实例很多时比较算法性能有问题，考虑转成 map 比较
+            Map<String, ServiceInstance> savedInstanceMap = savedInstanceList.stream()
+                                                                             .collect(Collectors.toMap(ServiceInstance::getInstanceId, s -> s));
+
+            for (ServiceInstance newInstance : newInstanceList) {
+                ServiceInstance savedInstance = savedInstanceMap.get(newInstance.getInstanceId());
+                if (savedInstance == null) {
+                    return true;
                 }
-                if (!isSame) {
+                final int newPort = getGRPCPort(newInstance);
+                if (!newInstance.getHost().equals(savedInstance.getHost()) || savedInstance.getPort() != newPort) {
                     return true;
                 }
             }
+
+            // for (final ServiceInstance instance : this.savedInstanceList) {
+            //     final int port = getGRPCPort(instance);
+            //     boolean isSame = false;
+            //     for (final ServiceInstance newInstance : newInstanceList) {
+            //         final int newPort = getGRPCPort(newInstance);
+            //         if (newInstance.getHost().equals(instance.getHost()) && port == newPort) {
+            //             isSame = true;
+            //             break;
+            //         }
+            //     }
+            //     if (!isSame) {
+            //         return true;
+            //     }
+            // }
+
             return false;
         }
 
