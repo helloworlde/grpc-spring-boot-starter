@@ -17,18 +17,17 @@
 
 package net.devh.boot.grpc.client.nameresolver;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.springframework.beans.factory.DisposableBean;
-
 import com.google.common.collect.ImmutableList;
-
 import io.grpc.NameResolverProvider;
 import io.grpc.NameResolverRegistry;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.DisposableBean;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
+ * 用于注册和取消注册 NameResolver
  * The NameResolverRegistration manages the registration and de-registration of Spring managed name resolvers.
  *
  * @author Daniel Theuke (daniel.theuke@heuboe.de)
@@ -49,6 +48,7 @@ public class NameResolverRegistration implements DisposableBean {
     }
 
     /**
+     * 注册所有的 NameResolverProviders
      * Register all NameResolverProviders in the given registry and store a reference to it for later de-registration.
      *
      * @param registry The registry to add the providers to.
@@ -65,6 +65,9 @@ public class NameResolverRegistration implements DisposableBean {
         }
     }
 
+    /**
+     * 取消注册
+     */
     @Override
     public void destroy() {
         for (NameResolverRegistry registry : this.registries) {

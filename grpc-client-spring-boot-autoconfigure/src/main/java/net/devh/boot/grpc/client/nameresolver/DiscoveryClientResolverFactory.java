@@ -64,16 +64,22 @@ public class DiscoveryClientResolverFactory extends NameResolverProvider {
     @Nullable
     @Override
     public NameResolver newNameResolver(final URI targetUri, final NameResolver.Args args) {
+        // 如果 schema 是 discovery
         if (DISCOVERY_SCHEME.equals(targetUri.getScheme())) {
             final String serviceName = targetUri.getPath();
+            // 判断服务名称是否不为空
             if (serviceName == null || serviceName.length() <= 1 || !serviceName.startsWith("/")) {
                 throw new IllegalArgumentException("Incorrectly formatted target uri; "
                         + "expected: '" + DISCOVERY_SCHEME + ":[//]/<service-name>'; "
                         + "but was '" + targetUri.toString() + "'");
             }
+            // TODO reference 干吗用的
             final AtomicReference<DiscoveryClientNameResolver> reference = new AtomicReference<>();
+            // 创建新的实例
             final DiscoveryClientNameResolver discoveryClientNameResolver =
-                    new DiscoveryClientNameResolver(serviceName.substring(1), this.client, args,
+                    new DiscoveryClientNameResolver(serviceName.substring(1),
+                            this.client,
+                            args,
                             GrpcUtil.SHARED_CHANNEL_EXECUTOR,
                             () -> this.discoveryClientNameResolvers.remove(reference.get()));
             reference.set(discoveryClientNameResolver);
@@ -99,6 +105,7 @@ public class DiscoveryClientResolverFactory extends NameResolverProvider {
     }
 
     /**
+     * 监听实例更新事件，当实例发生变化时更新
      * Triggers a refresh of the registered name resolvers.
      *
      * @param event The event that triggered the update.

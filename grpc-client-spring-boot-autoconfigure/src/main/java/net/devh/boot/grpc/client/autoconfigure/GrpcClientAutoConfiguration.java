@@ -17,20 +17,6 @@
 
 package net.devh.boot.grpc.client.autoconfigure;
 
-import java.util.Collections;
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
-
 import io.grpc.CompressorRegistry;
 import io.grpc.DecompressorRegistry;
 import io.grpc.NameResolverProvider;
@@ -47,6 +33,19 @@ import net.devh.boot.grpc.client.interceptor.AnnotationGlobalClientInterceptorCo
 import net.devh.boot.grpc.client.interceptor.GlobalClientInterceptorRegistry;
 import net.devh.boot.grpc.client.nameresolver.NameResolverRegistration;
 import net.devh.boot.grpc.common.autoconfigure.GrpcCommonCodecAutoConfiguration;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * The auto configuration used by Spring-Boot that contains all beans to create and inject grpc clients into beans.
@@ -83,6 +82,7 @@ public class GrpcClientAutoConfiguration {
     }
 
     /**
+     * 创建新的 NameResolverRegistration，确保 NameResolverProvider 在 Spring 关闭的时候可以关闭
      * Creates a new NameResolverRegistration. This ensures that the NameResolverProvider's get unregistered when spring
      * shuts down. This is mostly required for tests/when running multiple application contexts within the same JVM.
      *
@@ -92,8 +92,7 @@ public class GrpcClientAutoConfiguration {
     @ConditionalOnMissingBean
     @Lazy
     @Bean
-    NameResolverRegistration grpcNameResolverRegistration(
-            @Autowired(required = false) final List<NameResolverProvider> nameResolverProviders) {
+    NameResolverRegistration grpcNameResolverRegistration(@Autowired(required = false) final List<NameResolverProvider> nameResolverProviders) {
         NameResolverRegistration nameResolverRegistration = new NameResolverRegistration(nameResolverProviders);
         nameResolverRegistration.register(NameResolverRegistry.getDefaultRegistry());
         return nameResolverRegistration;
@@ -124,8 +123,8 @@ public class GrpcClientAutoConfiguration {
     @Bean
     @Lazy
     GrpcChannelFactory shadedNettyGrpcChannelFactory(final GrpcChannelsProperties properties,
-            final GlobalClientInterceptorRegistry globalClientInterceptorRegistry,
-            final List<GrpcChannelConfigurer> channelConfigurers) {
+                                                     final GlobalClientInterceptorRegistry globalClientInterceptorRegistry,
+                                                     final List<GrpcChannelConfigurer> channelConfigurers) {
         final ShadedNettyChannelFactory channelFactory =
                 new ShadedNettyChannelFactory(properties, globalClientInterceptorRegistry, channelConfigurers);
         final InProcessChannelFactory inProcessChannelFactory =
@@ -139,8 +138,8 @@ public class GrpcClientAutoConfiguration {
     @Bean
     @Lazy
     GrpcChannelFactory nettyGrpcChannelFactory(final GrpcChannelsProperties properties,
-            final GlobalClientInterceptorRegistry globalClientInterceptorRegistry,
-            final List<GrpcChannelConfigurer> channelConfigurers) {
+                                               final GlobalClientInterceptorRegistry globalClientInterceptorRegistry,
+                                               final List<GrpcChannelConfigurer> channelConfigurers) {
         final NettyChannelFactory channelFactory =
                 new NettyChannelFactory(properties, globalClientInterceptorRegistry, channelConfigurers);
         final InProcessChannelFactory inProcessChannelFactory =
@@ -153,8 +152,8 @@ public class GrpcClientAutoConfiguration {
     @Bean
     @Lazy
     GrpcChannelFactory inProcessGrpcChannelFactory(final GrpcChannelsProperties properties,
-            final GlobalClientInterceptorRegistry globalClientInterceptorRegistry,
-            final List<GrpcChannelConfigurer> channelConfigurers) {
+                                                   final GlobalClientInterceptorRegistry globalClientInterceptorRegistry,
+                                                   final List<GrpcChannelConfigurer> channelConfigurers) {
         return new InProcessChannelFactory(properties, globalClientInterceptorRegistry, channelConfigurers);
     }
 
