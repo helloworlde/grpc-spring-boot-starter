@@ -171,10 +171,14 @@ public class DiscoveryClientNameResolver extends NameResolver {
             this.savedInstanceList = requireNonNull(instanceList, "instanceList");
         }
 
+        /**
+         * 执行更新实例的任务
+         */
         @Override
         public void run() {
             final AtomicReference<List<ServiceInstance>> resultContainer = new AtomicReference<>();
             try {
+                // 获取实例，并更新
                 resultContainer.set(resolveInternal());
             } catch (final Exception e) {
                 this.savedListener.onError(Status.UNAVAILABLE.withCause(e)
@@ -182,6 +186,7 @@ public class DiscoveryClientNameResolver extends NameResolver {
                 resultContainer.set(Lists.newArrayList());
             } finally {
                 DiscoveryClientNameResolver.this.syncContext.execute(() -> {
+                    // 更新完成后修改状态为未同步
                     DiscoveryClientNameResolver.this.resolving = false;
                     final List<ServiceInstance> result = resultContainer.get();
                     if (result != KEEP_PREVIOUS && DiscoveryClientNameResolver.this.listener != null) {
@@ -221,6 +226,7 @@ public class DiscoveryClientNameResolver extends NameResolver {
                 targets.add(new EquivalentAddressGroup(
                         new InetSocketAddress(instance.getHost(), port), Attributes.EMPTY));
             }
+            // TODO ? 多余的判断
             if (targets.isEmpty()) {
                 log.error("None of the servers for {} specified a gRPC port", name);
                 this.savedListener.onError(Status.UNAVAILABLE
