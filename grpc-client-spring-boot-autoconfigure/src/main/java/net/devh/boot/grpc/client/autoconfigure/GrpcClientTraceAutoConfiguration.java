@@ -29,6 +29,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
+ * 日志链路配置
  * The configuration used to configure brave's tracing for grpc.
  *
  * @author Daniel Theuke (daniel.theuke@heuboe.de)
@@ -40,6 +41,7 @@ import org.springframework.context.annotation.Configuration;
 public class GrpcClientTraceAutoConfiguration {
 
     /**
+     * 配置日志链路拦截器
      * Configures a global client interceptor that applies brave's tracing logic to the requests.
      *
      * @param grpcTracing The grpc tracing bean.
@@ -47,10 +49,7 @@ public class GrpcClientTraceAutoConfiguration {
      */
     @Bean
     public GlobalClientInterceptorConfigurer globalTraceClientInterceptorConfigurer(final GrpcTracing grpcTracing) {
-        return registry -> registry.addClientInterceptors(
-                new OrderedClientInterceptor(
-                        grpcTracing.newClientInterceptor(),
-                        InterceptorOrder.ORDER_TRACING_METRICS + 1));
+        return registry -> registry.addClientInterceptors(new OrderedClientInterceptor(grpcTracing.newClientInterceptor(), InterceptorOrder.ORDER_TRACING_METRICS + 1));
     }
 
 }

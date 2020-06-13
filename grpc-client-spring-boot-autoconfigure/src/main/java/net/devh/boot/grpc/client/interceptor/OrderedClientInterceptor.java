@@ -17,17 +17,17 @@
 
 package net.devh.boot.grpc.client.interceptor;
 
-import static java.util.Objects.requireNonNull;
-
-import org.springframework.core.Ordered;
-
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.ClientCall;
 import io.grpc.ClientInterceptor;
 import io.grpc.MethodDescriptor;
+import org.springframework.core.Ordered;
+
+import static java.util.Objects.requireNonNull;
 
 /**
+ * 支持排序的 Client 端拦截器
  * A client interceptor wrapper that assigns an order to the underlying client interceptor.
  *
  * @author Daniel Theuke (daniel.theuke@heuboe.de)
@@ -38,19 +38,23 @@ public class OrderedClientInterceptor implements ClientInterceptor, Ordered {
     private final int order;
 
     /**
+     * 根据所给的 ClientInterceptor 和 order 创建新的拦截器
      * Creates a new OrderedClientInterceptor with the given client interceptor and order.
      *
      * @param clientInterceptor The client interceptor to delegate to.
-     * @param order The order of this interceptor.
+     * @param order             The order of this interceptor.
      */
     public OrderedClientInterceptor(ClientInterceptor clientInterceptor, int order) {
         this.clientInterceptor = requireNonNull(clientInterceptor, "clientInterceptor");
         this.order = order;
     }
 
+    /**
+     * 调用拦截器
+     */
     @Override
     public <ReqT, RespT> ClientCall<ReqT, RespT> interceptCall(MethodDescriptor<ReqT, RespT> method,
-            CallOptions callOptions, Channel next) {
+                                                               CallOptions callOptions, Channel next) {
         return this.clientInterceptor.interceptCall(method, callOptions, next);
     }
 

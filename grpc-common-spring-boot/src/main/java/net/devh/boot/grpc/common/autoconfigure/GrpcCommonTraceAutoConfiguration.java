@@ -17,6 +17,8 @@
 
 package net.devh.boot.grpc.common.autoconfigure;
 
+import brave.Tracing;
+import brave.grpc.GrpcTracing;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -25,15 +27,15 @@ import org.springframework.cloud.sleuth.autoconfig.TraceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import brave.Tracing;
-import brave.grpc.GrpcTracing;
-
 @Configuration
 @ConditionalOnProperty(value = "spring.sleuth.grpc.enabled", matchIfMissing = true)
 @AutoConfigureAfter(TraceAutoConfiguration.class)
 @ConditionalOnClass(value = {Tracing.class, GrpcTracing.class})
 public class GrpcCommonTraceAutoConfiguration {
 
+    /**
+     * 日志链路拦截器
+     */
     @Bean
     @ConditionalOnMissingBean
     public GrpcTracing grpcTracing(final Tracing tracing) {
