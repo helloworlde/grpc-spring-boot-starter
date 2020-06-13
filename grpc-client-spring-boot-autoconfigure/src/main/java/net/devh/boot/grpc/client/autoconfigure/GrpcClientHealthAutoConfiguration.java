@@ -17,6 +17,9 @@
 
 package net.devh.boot.grpc.client.autoconfigure;
 
+import com.google.common.collect.ImmutableMap;
+import io.grpc.ConnectivityState;
+import net.devh.boot.grpc.client.channelfactory.GrpcChannelFactory;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -25,12 +28,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 
-import com.google.common.collect.ImmutableMap;
-
-import io.grpc.ConnectivityState;
-import net.devh.boot.grpc.client.channelfactory.GrpcChannelFactory;
-
 /**
+ * gRPC Client 端健康检查
  * Auto configuration class for Spring-Boot. This allows zero config client health status updates for gRPC services.
  *
  * @author Daniel Theuke (daniel.theuke@heuboe.de)
@@ -41,26 +40,29 @@ import net.devh.boot.grpc.client.channelfactory.GrpcChannelFactory;
 public class GrpcClientHealthAutoConfiguration {
 
     /**
+     * 根据获取到的连接状态判断 channel 的健康状态
      * Creates a HealthIndicator based on the channels' {@link ConnectivityState}s from the underlying
      * {@link GrpcChannelFactory}.
      *
      * @param factory The factory to derive the connectivity states from.
      * @return A health indicator bean, that uses the following assumption
-     *         <code>DOWN == states.contains(TRANSIENT_FAILURE)</code>.
+     * <code>DOWN == states.contains(TRANSIENT_FAILURE)</code>.
      */
     @Bean
     @Lazy
     public HealthIndicator grpcChannelHealthIndicator(final GrpcChannelFactory factory) {
         return () -> {
+            // 获取连接状态
             final ImmutableMap<String, ConnectivityState> states = ImmutableMap.copyOf(factory.getConnectivityState());
             final Health.Builder health;
+            // 如果连接的状态值中包含 TRANSIENT_FAILURE，则为不健康
             if (states.containsValue(ConnectivityState.TRANSIENT_FAILURE)) {
                 health = Health.down();
             } else {
                 health = Health.up();
             }
             return health.withDetails(states)
-                    .build();
+                         .build();
         };
     }
 
