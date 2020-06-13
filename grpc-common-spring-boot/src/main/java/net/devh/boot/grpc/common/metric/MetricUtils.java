@@ -17,16 +17,16 @@
 
 package net.devh.boot.grpc.common.metric;
 
+import io.grpc.MethodDescriptor;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Meter;
+import io.micrometer.core.instrument.Timer;
+
 import static net.devh.boot.grpc.common.metric.MetricConstants.TAG_METHOD_NAME;
 import static net.devh.boot.grpc.common.metric.MetricConstants.TAG_METHOD_TYPE;
 import static net.devh.boot.grpc.common.metric.MetricConstants.TAG_SERVICE_NAME;
 import static net.devh.boot.grpc.common.util.GrpcUtils.extractMethodName;
 import static net.devh.boot.grpc.common.util.GrpcUtils.extractServiceName;
-
-import io.grpc.MethodDescriptor;
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.Meter;
-import io.micrometer.core.instrument.Timer;
 
 /**
  * Utility class that contains methods to create {@link Meter} instances for {@link MethodDescriptor}s.
@@ -36,40 +36,43 @@ import io.micrometer.core.instrument.Timer;
 public final class MetricUtils {
 
     /**
+     * 根据所给方法创建新的 counter
      * Creates a new counter builder for the given method. By default the base unit will be messages.
      *
-     * @param method The method the counter will be created for.
-     * @param name The name of the counter to use.
+     * @param method      The method the counter will be created for.
+     * @param name        The name of the counter to use.
      * @param description The description of the counter to use.
      * @return The newly created counter builder.
      */
     public static Counter.Builder prepareCounterFor(final MethodDescriptor<?, ?> method,
-            final String name, final String description) {
+                                                    final String name, final String description) {
         return Counter.builder(name)
-                .description(description)
-                .baseUnit("messages")
-                .tag(TAG_SERVICE_NAME, extractServiceName(method))
-                .tag(TAG_METHOD_NAME, extractMethodName(method))
-                .tag(TAG_METHOD_TYPE, method.getType().name());
+                      .description(description)
+                      .baseUnit("messages")
+                      .tag(TAG_SERVICE_NAME, extractServiceName(method))
+                      .tag(TAG_METHOD_NAME, extractMethodName(method))
+                      .tag(TAG_METHOD_TYPE, method.getType().name());
     }
 
     /**
+     * 根据所给的方法创建 Timer 计数器
      * Creates a new timer builder for the given method.
      *
-     * @param method The method the timer will be created for.
-     * @param name The name of the timer to use.
+     * @param method      The method the timer will be created for.
+     * @param name        The name of the timer to use.
      * @param description The description of the timer to use.
      * @return The newly created timer builder.
      */
     public static Timer.Builder prepareTimerFor(final MethodDescriptor<?, ?> method,
-            final String name, final String description) {
+                                                final String name, final String description) {
         return Timer.builder(name)
-                .description(description)
-                .tag(TAG_SERVICE_NAME, extractServiceName(method))
-                .tag(TAG_METHOD_NAME, extractMethodName(method))
-                .tag(TAG_METHOD_TYPE, method.getType().name());
+                    .description(description)
+                    .tag(TAG_SERVICE_NAME, extractServiceName(method))
+                    .tag(TAG_METHOD_NAME, extractMethodName(method))
+                    .tag(TAG_METHOD_TYPE, method.getType().name());
     }
 
-    private MetricUtils() {}
+    private MetricUtils() {
+    }
 
 }

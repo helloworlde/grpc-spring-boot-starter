@@ -17,15 +17,6 @@
 
 package net.devh.boot.grpc.common.metric;
 
-import static net.devh.boot.grpc.common.metric.MetricConstants.TAG_STATUS_CODE;
-
-import java.util.EnumMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
-
 import io.grpc.MethodDescriptor;
 import io.grpc.ServiceDescriptor;
 import io.grpc.Status.Code;
@@ -35,7 +26,17 @@ import io.micrometer.core.instrument.Timer;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
+
+import static net.devh.boot.grpc.common.metric.MetricConstants.TAG_STATUS_CODE;
+
 /**
+ * 监控拦截器
  * An abstract gRPC interceptor that will collect metrics for micrometer.
  *
  * @author Daniel Theuke (daniel.theuke@heuboe.de)
@@ -65,14 +66,14 @@ public abstract class AbstractMetricCollectingInterceptor {
      * Creates a new gRPC interceptor that will collect metrics into the given {@link MeterRegistry} and uses the given
      * customizer to configure the {@link Counter}s and {@link Timer}s.
      *
-     * @param registry The registry to use.
-     * @param counterCustomizer The unary function that can be used to customize the created counters.
-     * @param timerCustomizer The unary function that can be used to customize the created timers.
+     * @param registry              The registry to use.
+     * @param counterCustomizer     The unary function that can be used to customize the created counters.
+     * @param timerCustomizer       The unary function that can be used to customize the created timers.
      * @param eagerInitializedCodes The status codes that should be eager initialized.
      */
     public AbstractMetricCollectingInterceptor(final MeterRegistry registry,
-            final UnaryOperator<Counter.Builder> counterCustomizer,
-            final UnaryOperator<Timer.Builder> timerCustomizer, final Code... eagerInitializedCodes) {
+                                               final UnaryOperator<Counter.Builder> counterCustomizer,
+                                               final UnaryOperator<Timer.Builder> timerCustomizer, final Code... eagerInitializedCodes) {
         this.registry = registry;
         this.counterCustomizer = counterCustomizer;
         this.timerCustomizer = timerCustomizer;
@@ -150,8 +151,8 @@ public abstract class AbstractMetricCollectingInterceptor {
     protected Function<Code, Timer> asTimerFunction(final Supplier<Timer.Builder> timerTemplate) {
         final Map<Code, Timer> cache = new EnumMap<>(Code.class);
         final Function<Code, Timer> creator = code -> timerTemplate.get()
-                .tag(TAG_STATUS_CODE, code.name())
-                .register(this.registry);
+                                                                   .tag(TAG_STATUS_CODE, code.name())
+                                                                   .register(this.registry);
         final Function<Code, Timer> cacheResolver = code -> cache.computeIfAbsent(code, creator);
         // Eager initialize
         for (final Code code : this.eagerInitializedCodes) {
@@ -181,12 +182,12 @@ public abstract class AbstractMetricCollectingInterceptor {
         /**
          * Creates a new metric set with the given meter instances.
          *
-         * @param requestCounter The request counter to use.
+         * @param requestCounter  The request counter to use.
          * @param responseCounter The response counter to use.
-         * @param timerFunction The timer function to use.
+         * @param timerFunction   The timer function to use.
          */
         public MetricSet(final Counter requestCounter, final Counter responseCounter,
-                final Function<Code, Timer> timerFunction) {
+                         final Function<Code, Timer> timerFunction) {
             this.requestCounter = requestCounter;
             this.responseCounter = responseCounter;
             this.timerFunction = timerFunction;

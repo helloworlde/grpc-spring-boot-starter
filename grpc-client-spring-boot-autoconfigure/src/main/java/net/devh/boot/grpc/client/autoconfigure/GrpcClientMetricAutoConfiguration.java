@@ -17,6 +17,9 @@
 
 package net.devh.boot.grpc.client.autoconfigure;
 
+import io.grpc.ClientInterceptor;
+import io.micrometer.core.instrument.MeterRegistry;
+import net.devh.boot.grpc.client.metric.MetricCollectingClientInterceptor;
 import org.springframework.boot.actuate.autoconfigure.metrics.CompositeMeterRegistryAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -25,11 +28,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import io.grpc.ClientInterceptor;
-import io.micrometer.core.instrument.MeterRegistry;
-import net.devh.boot.grpc.client.metric.MetricCollectingClientInterceptor;
-
 /**
+ * 配置 Client 端监控
  * Auto configuration class for Spring-Boot. This allows zero config client metrics for gRPC services.
  *
  * @author Daniel Theuke (daniel.theuke@heuboe.de)

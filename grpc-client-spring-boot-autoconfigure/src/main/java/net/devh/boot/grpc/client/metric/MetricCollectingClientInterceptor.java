@@ -17,7 +17,11 @@
 
 package net.devh.boot.grpc.client.metric;
 
-import io.grpc.*;
+import io.grpc.CallOptions;
+import io.grpc.Channel;
+import io.grpc.ClientCall;
+import io.grpc.ClientInterceptor;
+import io.grpc.MethodDescriptor;
 import io.grpc.Status.Code;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -31,11 +35,14 @@ import org.springframework.core.annotation.Order;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
-import static net.devh.boot.grpc.common.metric.MetricConstants.*;
+import static net.devh.boot.grpc.common.metric.MetricConstants.METRIC_NAME_CLIENT_PROCESSING_DURATION;
+import static net.devh.boot.grpc.common.metric.MetricConstants.METRIC_NAME_CLIENT_REQUESTS_SENT;
+import static net.devh.boot.grpc.common.metric.MetricConstants.METRIC_NAME_CLIENT_RESPONSES_RECEIVED;
 import static net.devh.boot.grpc.common.metric.MetricUtils.prepareCounterFor;
 import static net.devh.boot.grpc.common.metric.MetricUtils.prepareTimerFor;
 
 /**
+ * gRPC Client 监控配置
  * A gRPC client interceptor that will collect metrics for micrometer.
  *
  * @author Daniel Theuke (daniel.theuke@heuboe.de)
@@ -56,6 +63,7 @@ public class MetricCollectingClientInterceptor extends AbstractMetricCollectingI
     }
 
     /**
+     * 根据给定的 MeterRegistry 创建新的拦截器，配置 Counter 和 Timer 监控
      * Creates a new gRPC client interceptor that will collect metrics into the given {@link MeterRegistry} and uses the
      * given customizer to configure the {@link Counter}s and {@link Timer}s.
      *
@@ -71,36 +79,59 @@ public class MetricCollectingClientInterceptor extends AbstractMetricCollectingI
         super(registry, counterCustomizer, timerCustomizer, eagerInitializedCodes);
     }
 
+    /**
+     * Request 计数器
+     *
+     * @param method The method to create the counter for.
+     * @return
+     */
     @Override
     protected Counter newRequestCounterFor(final MethodDescriptor<?, ?> method) {
-        return this.counterCustomizer.apply(
-                prepareCounterFor(method,
-                        METRIC_NAME_CLIENT_REQUESTS_SENT,
-                        "The total number of requests sent"))
+        return this.counterCustomizer.apply(prepareCounterFor(method, METRIC_NAME_CLIENT_REQUESTS_SENT, "The total number of requests sent"))
                                      .register(this.registry);
     }
 
+    /**
+     * Response 计数器
+     *
+     * @param method The method to create the counter for.
+     * @return
+     */
     @Override
     protected Counter newResponseCounterFor(final MethodDescriptor<?, ?> method) {
-        return this.counterCustomizer.apply(
-                prepareCounterFor(method,
-                        METRIC_NAME_CLIENT_RESPONSES_RECEIVED,
-                        "The total number of responses received"))
+        return this.counterCustomizer.apply(prepareCounterFor(method, METRIC_NAME_CLIENT_RESPONSES_RECEIVED, "The total number of responses received"))
                                      .register(this.registry);
     }
 
+    /**
+     * 请求响应计数器
+     *
+     * @param method The method to create the timer for.
+     * @return
+     */
     @Override
     protected Function<Code, Timer> newTimerFunction(final MethodDescriptor<?, ?> method) {
-        return asTimerFunction(() -> this.timerCustomizer.apply(
-                prepareTimerFor(method,
-                        METRIC_NAME_CLIENT_PROCESSING_DURATION,
-                        "The total time taken for the client to complete the call, including network delay")));
+        return asTimerFunction(() -> this.timerCustomizer.apply(prepareTimerFor(method, METRIC_NAME_CLIENT_PROCESSING_DURATION, "The total time taken for the client to complete the call, including network delay")));
     }
 
+    /**
+     * 拦截器
+     *
+     * @param methodDescriptor
+     * @param callOptions
+     * @param channel
+     * @param <Q>
+     * @param <A>
+     * @return
+     */
     @Override
     public <Q, A> ClientCall<Q, A> interceptCall(final MethodDescriptor<Q, A> methodDescriptor,
-                                                 final CallOptions callOptions, final Channel channel) {
+                                                 final CallOptions callOptions,
+                                                 final Channel channel) {
+
+        // 创建 Metric
         final MetricSet metrics = metricsFor(methodDescriptor);
+        // 封装拦截器 用于代理
         return new MetricCollectingClientCall<>(
                 channel.newCall(methodDescriptor, callOptions),
                 this.registry,

@@ -17,8 +17,6 @@
 
 package net.devh.boot.grpc.client.metric;
 
-import java.util.function.Function;
-
 import io.grpc.ClientCall;
 import io.grpc.ForwardingClientCall.SimpleForwardingClientCall;
 import io.grpc.Metadata;
@@ -26,6 +24,8 @@ import io.grpc.Status.Code;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
+
+import java.util.function.Function;
 
 /**
  * A simple forwarding client call that collects metrics for micrometer.
@@ -42,17 +42,18 @@ class MetricCollectingClientCall<Q, A> extends SimpleForwardingClientCall<Q, A> 
     private final Function<Code, Timer> timerFunction;
 
     /**
+     * 创建 ClientCall的代理，用于封装和收集监控指标
      * Creates a new delegating ClientCall that will wrap the given client call to collect metrics.
      *
-     * @param delegate The original call to wrap.
-     * @param registry The registry to save the metrics to.
-     * @param requestCounter The counter for outgoing requests.
+     * @param delegate        The original call to wrap.
+     * @param registry        The registry to save the metrics to.
+     * @param requestCounter  The counter for outgoing requests.
      * @param responseCounter The counter for incoming responses.
-     * @param timerFunction A function that will return a timer for a given status code.
+     * @param timerFunction   A function that will return a timer for a given status code.
      */
     public MetricCollectingClientCall(final ClientCall<Q, A> delegate, final MeterRegistry registry,
-            final Counter requestCounter, final Counter responseCounter,
-            final Function<Code, Timer> timerFunction) {
+                                      final Counter requestCounter, final Counter responseCounter,
+                                      final Function<Code, Timer> timerFunction) {
         super(delegate);
         this.registry = registry;
         this.requestCounter = requestCounter;
@@ -62,8 +63,9 @@ class MetricCollectingClientCall<Q, A> extends SimpleForwardingClientCall<Q, A> 
 
     @Override
     public void start(final ClientCall.Listener<A> responseListener, final Metadata metadata) {
-        super.start(
-                new MetricCollectingClientCallListener<>(responseListener, this.registry, this.responseCounter,
+        super.start(new MetricCollectingClientCallListener<>(responseListener,
+                        this.registry,
+                        this.responseCounter,
                         this.timerFunction),
                 metadata);
     }
