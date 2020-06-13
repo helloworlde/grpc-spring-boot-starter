@@ -17,21 +17,21 @@
 
 package net.devh.boot.grpc.client.nameresolver;
 
-import static java.util.Objects.requireNonNull;
+import io.grpc.EquivalentAddressGroup;
+import io.grpc.NameResolver;
+import io.grpc.NameResolverProvider;
 
+import javax.annotation.Nullable;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import javax.annotation.Nullable;
-
-import io.grpc.EquivalentAddressGroup;
-import io.grpc.NameResolver;
-import io.grpc.NameResolverProvider;
+import static java.util.Objects.requireNonNull;
 
 /**
+ * 静态地址 Resolver 提供器
  * A name resolver provider that will create a {@link NameResolver} with static addresses. This factory uses the
  * {@link #STATIC_SCHEME "static" scheme}.
  *
@@ -46,6 +46,13 @@ public class StaticNameResolverProvider extends NameResolverProvider {
 
     private static final Pattern PATTERN_COMMA = Pattern.compile(",");
 
+    /**
+     * 根据URI 查找相应的服务实例列表
+     *
+     * @param targetUri
+     * @param args
+     * @return
+     */
     @Nullable
     @Override
     public NameResolver newNameResolver(final URI targetUri, final NameResolver.Args args) {
@@ -56,17 +63,21 @@ public class StaticNameResolverProvider extends NameResolverProvider {
     }
 
     /**
+     * 根据所给的服务名称，创建实例地址
      * Creates a new {@link NameResolver} for the given authority and attributes.
      *
      * @param targetAuthority The authority to connect to.
-     * @param defaultPort The default port to use, if none is specified.
+     * @param defaultPort     The default port to use, if none is specified.
      * @return The newly created name resolver for the given target.
      */
     private NameResolver of(final String targetAuthority, int defaultPort) {
         requireNonNull(targetAuthority, "targetAuthority");
         // Determine target ips
+        // host列表
         final String[] hosts = PATTERN_COMMA.split(targetAuthority);
-        final List<EquivalentAddressGroup> targets = new ArrayList<>(hosts.length);
+        List<EquivalentAddressGroup> targets = new ArrayList<>(hosts.length);
+
+        // 遍历host，拼接为服务地址
         for (final String host : hosts) {
             final URI uri = URI.create("//" + host);
             int port = uri.getPort();
@@ -75,6 +86,21 @@ public class StaticNameResolverProvider extends NameResolverProvider {
             }
             targets.add(new EquivalentAddressGroup(new InetSocketAddress(uri.getHost(), port)));
         }
+
+        // TODO Stream 好像并没有优雅
+        // AtomicInteger port = new AtomicInteger(defaultPort);
+        // targets = Arrays.stream(hosts)
+        //                 .map(h -> {
+        //                     URI uri = URI.create("//" + h);
+        //                     if (uri.getPort() != -1) {
+        //                         port.set(uri.getPort());
+        //                     }
+        //                     return uri;
+        //                 })
+        //                 .map(u -> new InetSocketAddress(u.getHost(), port.get()))
+        //                 .map(EquivalentAddressGroup::new)
+        //                 .collect(Collectors.toList());
+
         if (targets.isEmpty()) {
             throw new IllegalArgumentException("Must have at least one target, but was: " + targetAuthority);
         }

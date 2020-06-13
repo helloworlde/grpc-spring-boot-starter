@@ -17,16 +17,16 @@
 
 package net.devh.boot.grpc.client.nameresolver;
 
-import static java.util.Objects.requireNonNull;
-
-import java.util.Collection;
-
 import com.google.common.collect.ImmutableList;
-
 import io.grpc.EquivalentAddressGroup;
 import io.grpc.NameResolver;
 
+import java.util.Collection;
+
+import static java.util.Objects.requireNonNull;
+
 /**
+ * 根据服务名返回静态实例列表的 Resolver
  * A {@link NameResolver} that will always respond with a static set of target addresses.
  */
 public class StaticNameResolver extends NameResolver {
@@ -35,20 +35,22 @@ public class StaticNameResolver extends NameResolver {
     private final ResolutionResult result;
 
     /**
+     * 根据名称和地址创建
      * Creates a static name resolver with only a single target server.
      *
      * @param authority The authority this name resolver was created for.
-     * @param target The target address of the server to use.
+     * @param target    The target address of the server to use.
      */
     public StaticNameResolver(final String authority, final EquivalentAddressGroup target) {
         this(authority, ImmutableList.of(requireNonNull(target, "target")));
     }
 
     /**
+     * 根据名称和多个目标地址创建
      * Creates a static name resolver with multiple target servers.
      *
      * @param authority The authority this name resolver was created for.
-     * @param targets The target addresses of the servers to use.
+     * @param targets   The target addresses of the servers to use.
      */
     public StaticNameResolver(final String authority, final Collection<EquivalentAddressGroup> targets) {
         this.authority = requireNonNull(authority, "authority");
@@ -56,15 +58,16 @@ public class StaticNameResolver extends NameResolver {
             throw new IllegalArgumentException("Must have at least one target");
         }
         this.result = ResolutionResult.newBuilder()
-                .setAddresses(ImmutableList.copyOf(targets))
-                .build();
+                                      .setAddresses(ImmutableList.copyOf(targets))
+                                      .build();
     }
 
     /**
+     * 根据名称和封装后的地址创建
      * Creates a static name resolver with multiple target servers.
      *
      * @param authority The authority this name resolver was created for.
-     * @param result The resolution result to use..
+     * @param result    The resolution result to use..
      */
     public StaticNameResolver(final String authority, final ResolutionResult result) {
         this.authority = requireNonNull(authority, "authority");
@@ -76,6 +79,11 @@ public class StaticNameResolver extends NameResolver {
         return this.authority;
     }
 
+    /**
+     * 根据地址创建相应的 channel
+     *
+     * @param listener
+     */
     @Override
     public void start(final Listener2 listener) {
         listener.onResult(this.result);

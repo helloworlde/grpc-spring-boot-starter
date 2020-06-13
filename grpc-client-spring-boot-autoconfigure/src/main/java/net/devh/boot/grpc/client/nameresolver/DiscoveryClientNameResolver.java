@@ -18,7 +18,11 @@
 package net.devh.boot.grpc.client.nameresolver;
 
 import com.google.common.collect.Lists;
-import io.grpc.*;
+import io.grpc.Attributes;
+import io.grpc.EquivalentAddressGroup;
+import io.grpc.NameResolver;
+import io.grpc.Status;
+import io.grpc.SynchronizationContext;
 import io.grpc.internal.SharedResourceHolder;
 import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.common.util.GrpcUtils;
@@ -74,8 +78,11 @@ public class DiscoveryClientNameResolver extends NameResolver {
      * @param executorResource The executor resource.
      * @param externalCleaner  The optional cleaner used during {@link #shutdown()}
      */
-    public DiscoveryClientNameResolver(final String name, final DiscoveryClient client, final Args args,
-                                       final SharedResourceHolder.Resource<Executor> executorResource, final Runnable externalCleaner) {
+    public DiscoveryClientNameResolver(final String name,
+                                       final DiscoveryClient client,
+                                       final Args args,
+                                       final SharedResourceHolder.Resource<Executor> executorResource,
+                                       final Runnable externalCleaner) {
         this.name = name;
         this.client = client;
         this.syncContext = requireNonNull(args.getSynchronizationContext(), "syncContext");
@@ -90,6 +97,11 @@ public class DiscoveryClientNameResolver extends NameResolver {
         return this.name;
     }
 
+    /**
+     * 开始监听服务实例
+     *
+     * @param listener
+     */
     @Override
     public void start(final Listener2 listener) {
         checkState(this.listener == null, "already started");
@@ -110,6 +122,7 @@ public class DiscoveryClientNameResolver extends NameResolver {
     }
 
     /**
+     * 监听器触发的刷新事件，即使 Listener没有启动也可以被安全调用
      * Triggers a refresh on the listener from non-grpc threads. This method can safely be called, even if the listener
      * hasn't been started yet.
      *
@@ -135,14 +148,19 @@ public class DiscoveryClientNameResolver extends NameResolver {
         this.executor.execute(new Resolve(this.listener, this.instanceList));
     }
 
+    /**
+     * 关闭
+     */
     @Override
     public void shutdown() {
         this.listener = null;
         if (this.executor != null && this.usingExecutorResource) {
+            // 释放 executor
             this.executor = SharedResourceHolder.release(this.executorResource, this.executor);
         }
         this.instanceList = Lists.newArrayList();
         if (this.externalCleaner != null) {
+            // 执行清理流程
             this.externalCleaner.run();
         }
     }
@@ -153,6 +171,7 @@ public class DiscoveryClientNameResolver extends NameResolver {
     }
 
     /**
+     * 用于更新 gRPC服务实例列表
      * The logic for updating the gRPC server list using a discovery client.
      */
     private final class Resolve implements Runnable {
@@ -206,31 +225,32 @@ public class DiscoveryClientNameResolver extends NameResolver {
         private List<ServiceInstance> resolveInternal() {
             final String name = DiscoveryClientNameResolver.this.name;
             // 从注册中心获取实例
-            final List<ServiceInstance> newInstanceList =
-                    DiscoveryClientNameResolver.this.client.getInstances(name);
+            final List<ServiceInstance> newInstanceList = DiscoveryClientNameResolver.this.client.getInstances(name);
             log.debug("Got {} candidate servers for {}", newInstanceList.size(), name);
+
             if (CollectionUtils.isEmpty(newInstanceList)) {
                 log.error("No servers found for {}", name);
                 this.savedListener.onError(Status.UNAVAILABLE.withDescription("No servers found for " + name));
                 return Lists.newArrayList();
             }
+
             if (!needsToUpdateConnections(newInstanceList)) {
                 log.debug("Nothing has changed... skipping update for {}", name);
                 return KEEP_PREVIOUS;
             }
+
             log.debug("Ready to update server list for {}", name);
             final List<EquivalentAddressGroup> targets = Lists.newArrayList();
             for (final ServiceInstance instance : newInstanceList) {
                 final int port = getGRPCPort(instance);
                 log.debug("Found gRPC server {}:{} for {}", instance.getHost(), port, name);
-                targets.add(new EquivalentAddressGroup(
-                        new InetSocketAddress(instance.getHost(), port), Attributes.EMPTY));
+                targets.add(new EquivalentAddressGroup(new InetSocketAddress(instance.getHost(), port), Attributes.EMPTY));
             }
+
             // TODO ? 多余的判断
             if (targets.isEmpty()) {
                 log.error("None of the servers for {} specified a gRPC port", name);
-                this.savedListener.onError(Status.UNAVAILABLE
-                        .withDescription("None of the servers for " + name + " specified a gRPC port"));
+                this.savedListener.onError(Status.UNAVAILABLE.withDescription("None of the servers for " + name + " specified a gRPC port"));
                 return Lists.newArrayList();
             } else {
                 this.savedListener.onResult(ResolutionResult.newBuilder()
@@ -254,10 +274,12 @@ public class DiscoveryClientNameResolver extends NameResolver {
             if (metadata == null) {
                 return instance.getPort();
             }
+
             final String portString = metadata.get(GrpcUtils.CLOUD_DISCOVERY_METADATA_PORT);
             if (portString == null) {
                 return instance.getPort();
             }
+
             try {
                 return Integer.parseInt(portString);
             } catch (final NumberFormatException e) {

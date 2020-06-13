@@ -29,6 +29,12 @@ import org.springframework.context.annotation.Lazy;
 @ConditionalOnBean(DiscoveryClient.class)
 public class GrpcDiscoveryClientAutoConfiguration {
 
+    /**
+     * Client 端服务发现配置
+     *
+     * @param client
+     * @return
+     */
     @ConditionalOnMissingBean
     @Lazy // Not needed for InProcessChannelFactories
     @Bean

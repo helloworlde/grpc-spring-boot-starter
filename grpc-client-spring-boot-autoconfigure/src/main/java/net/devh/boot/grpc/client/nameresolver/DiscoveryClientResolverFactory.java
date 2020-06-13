@@ -61,6 +61,13 @@ public class DiscoveryClientResolverFactory extends NameResolverProvider {
         this.client = requireNonNull(client, "client");
     }
 
+    /**
+     * 根据请求的URI 获取服务实例并创建相应的channel
+     *
+     * @param targetUri
+     * @param args
+     * @return
+     */
     @Nullable
     @Override
     public NameResolver newNameResolver(final URI targetUri, final NameResolver.Args args) {
@@ -113,6 +120,7 @@ public class DiscoveryClientResolverFactory extends NameResolverProvider {
     @EventListener(HeartbeatEvent.class)
     public void heartbeat(final HeartbeatEvent event) {
         if (this.monitor.update(event.getValue())) {
+            // 遍历所有的 Resolver，并更新相应的实例
             for (final DiscoveryClientNameResolver discoveryClientNameResolver : this.discoveryClientNameResolvers) {
                 discoveryClientNameResolver.refreshFromExternal();
             }

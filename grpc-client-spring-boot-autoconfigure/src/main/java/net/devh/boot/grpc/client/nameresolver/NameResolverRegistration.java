@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 用于注册和取消注册 NameResolver
+ * 用于向 gRPC 注册和取消注册 NameResolver
  * The NameResolverRegistration manages the registration and de-registration of Spring managed name resolvers.
  *
  * @author Daniel Theuke (daniel.theuke@heuboe.de)
