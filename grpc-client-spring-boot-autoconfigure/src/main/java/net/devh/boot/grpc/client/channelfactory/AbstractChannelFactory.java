@@ -17,21 +17,7 @@
 
 package net.devh.boot.grpc.client.channelfactory;
 
-import static java.util.Objects.requireNonNull;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-
-import javax.annotation.PreDestroy;
-import javax.annotation.concurrent.GuardedBy;
-
-import org.springframework.util.unit.DataSize;
-
 import com.google.common.collect.Lists;
-
 import io.grpc.Channel;
 import io.grpc.ClientInterceptor;
 import io.grpc.ClientInterceptors;
@@ -44,13 +30,25 @@ import net.devh.boot.grpc.client.config.GrpcChannelProperties.Security;
 import net.devh.boot.grpc.client.config.GrpcChannelsProperties;
 import net.devh.boot.grpc.client.config.NegotiationType;
 import net.devh.boot.grpc.client.interceptor.GlobalClientInterceptorRegistry;
+import org.springframework.util.unit.DataSize;
+
+import javax.annotation.PreDestroy;
+import javax.annotation.concurrent.GuardedBy;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+
+import static java.util.Objects.requireNonNull;
 
 /**
+ * GrpcChannelFactory 的抽象实现
+ * <p>
  * This abstract channel factory contains some shared code for other {@link GrpcChannelFactory}s. This class utilizes
  * connection pooling and thus needs to be {@link #close() closed} after usage.
  *
  * @param <T> The type of builder used by this channel factory.
- *
  * @author Michael (yidongnan@gmail.com)
  * @author Daniel Theuke (daniel.theuke@heuboe.de)
  * @since 5/17/16
@@ -73,13 +71,13 @@ public abstract class AbstractChannelFactory<T extends ManagedChannelBuilder<T>>
     /**
      * Creates a new AbstractChannelFactory with eager initialized references.
      *
-     * @param properties The properties for the channels to create.
+     * @param properties                      The properties for the channels to create.
      * @param globalClientInterceptorRegistry The interceptor registry to use.
-     * @param channelConfigurers The channel configurers to use. Can be empty.
+     * @param channelConfigurers              The channel configurers to use. Can be empty.
      */
     public AbstractChannelFactory(final GrpcChannelsProperties properties,
-            final GlobalClientInterceptorRegistry globalClientInterceptorRegistry,
-            final List<GrpcChannelConfigurer> channelConfigurers) {
+                                  final GlobalClientInterceptorRegistry globalClientInterceptorRegistry,
+                                  final List<GrpcChannelConfigurer> channelConfigurers) {
         this.properties = requireNonNull(properties, "properties");
         this.globalClientInterceptorRegistry =
                 requireNonNull(globalClientInterceptorRegistry, "globalClientInterceptorRegistry");
@@ -91,22 +89,27 @@ public abstract class AbstractChannelFactory<T extends ManagedChannelBuilder<T>>
         return createChannel(name, Collections.emptyList());
     }
 
+    /**
+     * 创建 Channel
+     */
     @Override
     public Channel createChannel(final String name, final List<ClientInterceptor> customInterceptors,
-            final boolean sortInterceptors) {
+                                 final boolean sortInterceptors) {
         final Channel channel;
         synchronized (this) {
             if (this.shutdown) {
                 throw new IllegalStateException("GrpcChannelFactory is already closed!");
             }
+            // 创建channel
             channel = this.channels.computeIfAbsent(name, this::newManagedChannel);
         }
-        final List<ClientInterceptor> interceptors =
-                Lists.newArrayList(this.globalClientInterceptorRegistry.getClientInterceptors());
+        // 获取全局拦截器，并将 GrpcClient 指定的拦截器添加到其中，排序
+        final List<ClientInterceptor> interceptors = Lists.newArrayList(this.globalClientInterceptorRegistry.getClientInterceptors());
         interceptors.addAll(customInterceptors);
         if (sortInterceptors) {
             this.globalClientInterceptorRegistry.sortInterceptors(interceptors);
         }
+        // 返回封装后的 Channel
         return ClientInterceptors.interceptForward(channel, interceptors);
     }
 
@@ -151,7 +154,7 @@ public abstract class AbstractChannelFactory<T extends ManagedChannelBuilder<T>>
      * by this library.
      *
      * @param builder The channel builder to configure.
-     * @param name The name of the client to configure.
+     * @param name    The name of the client to configure.
      */
     protected void configure(final T builder, final String name) {
         configureKeepAlive(builder, name);
@@ -167,14 +170,14 @@ public abstract class AbstractChannelFactory<T extends ManagedChannelBuilder<T>>
      * Configures the keep alive options that should be used by the channel.
      *
      * @param builder The channel builder to configure.
-     * @param name The name of the client to configure.
+     * @param name    The name of the client to configure.
      */
     protected void configureKeepAlive(final T builder, final String name) {
         final GrpcChannelProperties properties = getPropertiesFor(name);
         if (properties.isEnableKeepAlive()) {
             builder.keepAliveTime(properties.getKeepAliveTime().toNanos(), TimeUnit.NANOSECONDS)
-                    .keepAliveTimeout(properties.getKeepAliveTimeout().toNanos(), TimeUnit.NANOSECONDS)
-                    .keepAliveWithoutCalls(properties.isKeepAliveWithoutCalls());
+                   .keepAliveTimeout(properties.getKeepAliveTimeout().toNanos(), TimeUnit.NANOSECONDS)
+                   .keepAliveWithoutCalls(properties.isKeepAliveWithoutCalls());
         }
     }
 
@@ -182,7 +185,7 @@ public abstract class AbstractChannelFactory<T extends ManagedChannelBuilder<T>>
      * Configures the security options that should be used by the channel.
      *
      * @param builder The channel builder to configure.
-     * @param name The name of the client to configure.
+     * @param name    The name of the client to configure.
      */
     protected void configureSecurity(final T builder, final String name) {
         final GrpcChannelProperties properties = getPropertiesFor(name);
@@ -212,7 +215,7 @@ public abstract class AbstractChannelFactory<T extends ManagedChannelBuilder<T>>
      * Configures limits such as max message sizes that should be used by the channel.
      *
      * @param builder The channel builder to configure.
-     * @param name The name of the client to configure.
+     * @param name    The name of the client to configure.
      */
     protected void configureLimits(final T builder, final String name) {
         final GrpcChannelProperties properties = getPropertiesFor(name);
@@ -226,7 +229,7 @@ public abstract class AbstractChannelFactory<T extends ManagedChannelBuilder<T>>
      * Configures the compression options that should be used by the channel.
      *
      * @param builder The channel builder to configure.
-     * @param name The name of the client to configure.
+     * @param name    The name of the client to configure.
      */
     protected void configureCompression(final T builder, final String name) {
         final GrpcChannelProperties properties = getPropertiesFor(name);
@@ -243,7 +246,7 @@ public abstract class AbstractChannelFactory<T extends ManagedChannelBuilder<T>>
     /**
      * Watch the given channel for connectivity changes.
      *
-     * @param name The name of the channel in the state overview.
+     * @param name    The name of the channel in the state overview.
      * @param channel The channel to watch the state of.
      */
     protected void watchConnectivityState(final String name, final ManagedChannel channel) {

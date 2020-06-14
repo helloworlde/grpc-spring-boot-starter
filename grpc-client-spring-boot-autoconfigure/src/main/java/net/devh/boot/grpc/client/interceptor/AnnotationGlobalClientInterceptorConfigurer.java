@@ -17,13 +17,13 @@
 
 package net.devh.boot.grpc.client.interceptor;
 
+import io.grpc.ClientInterceptor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
-import io.grpc.ClientInterceptor;
-import lombok.extern.slf4j.Slf4j;
-
 /**
+ * 查找 GrpcGlobalClientInterceptor 修饰的拦截器并加入到拦截器配置中
  * Automatically find and configure {@link GrpcGlobalClientInterceptor annotated} global {@link ClientInterceptor}s.
  *
  * @author Daniel Theuke (daniel.theuke@heuboe.de)
@@ -37,11 +37,11 @@ public class AnnotationGlobalClientInterceptorConfigurer implements GlobalClient
     @Override
     public void addClientInterceptors(final GlobalClientInterceptorRegistry registry) {
         this.context.getBeansWithAnnotation(GrpcGlobalClientInterceptor.class)
-                .forEach((name, bean) -> {
-                    ClientInterceptor interceptor = (ClientInterceptor) bean;
-                    log.debug("Registering GlobalClientInterceptor: {} ({})", name, interceptor);
-                    registry.addClientInterceptors(interceptor);
-                });
+                    .forEach((name, bean) -> {
+                        ClientInterceptor interceptor = (ClientInterceptor) bean;
+                        log.debug("Registering GlobalClientInterceptor: {} ({})", name, interceptor);
+                        registry.addClientInterceptors(interceptor);
+                    });
     }
 
 }

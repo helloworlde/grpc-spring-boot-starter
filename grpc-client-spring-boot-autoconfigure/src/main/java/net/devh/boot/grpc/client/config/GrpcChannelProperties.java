@@ -17,21 +17,6 @@
 
 package net.devh.boot.grpc.client.config;
 
-import java.io.File;
-import java.io.InputStream;
-import java.net.URI;
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import org.springframework.boot.convert.DataSizeUnit;
-import org.springframework.boot.convert.DurationUnit;
-import org.springframework.core.io.Resource;
-import org.springframework.util.unit.DataSize;
-import org.springframework.util.unit.DataUnit;
-
 import io.grpc.LoadBalancerRegistry;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.NameResolverProvider;
@@ -41,8 +26,23 @@ import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder;
 import io.grpc.netty.shaded.io.netty.handler.ssl.SslContextBuilder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.springframework.boot.convert.DataSizeUnit;
+import org.springframework.boot.convert.DurationUnit;
+import org.springframework.core.io.Resource;
+import org.springframework.util.unit.DataSize;
+import org.springframework.util.unit.DataUnit;
+
+import java.io.File;
+import java.io.InputStream;
+import java.net.URI;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
+ * Channel 的属性配置
  * The channel properties for a single named gRPC channel or service reference.
  *
  * @author Michael (yidongnan@gmail.com)
@@ -75,7 +75,6 @@ public class GrpcChannelProperties {
      * {@code dns:/}.
      *
      * @param address The address to use for the channel or null to default to the fallback.
-     *
      * @see #setAddress(String)
      */
     public void setAddress(final URI address) {
@@ -108,7 +107,6 @@ public class GrpcChannelProperties {
      * </ul>
      *
      * @param address The string representation of an uri to use as target address or null to use a fallback.
-     *
      * @see <a href="https://github.com/grpc/grpc/blob/master/doc/naming.md">gRPC Name Resolution</a>
      * @see NameResolverProvider
      */
@@ -157,7 +155,6 @@ public class GrpcChannelProperties {
      * Gets whether keepAlive is enabled.
      *
      * @return True, if keep alive should be enabled. False otherwise.
-     *
      * @see #setEnableKeepAlive(Boolean)
      */
     public boolean isEnableKeepAlive() {
@@ -183,7 +180,6 @@ public class GrpcChannelProperties {
      * Gets the default delay before we send a keepAlive.
      *
      * @return The default delay before sending keepAlives.
-     *
      * @see #setKeepAliveTime(Duration)
      */
     public Duration getKeepAliveTime() {
@@ -195,7 +191,6 @@ public class GrpcChannelProperties {
      * SECONDS}. Please note that shorter intervals increase the network burden for the server.
      *
      * @param keepAliveTime The new default delay before sending keepAlives, or null to use the fallback.
-     *
      * @see #setEnableKeepAlive(Boolean)
      * @see NettyServerBuilder#keepAliveTime(long, TimeUnit)
      */
@@ -213,7 +208,6 @@ public class GrpcChannelProperties {
      * The default timeout for a keepAlives ping request.
      *
      * @return The default timeout for a keepAlives ping request.
-     *
      * @see #setKeepAliveTimeout(Duration)
      */
     public Duration getKeepAliveTimeout() {
@@ -225,7 +219,6 @@ public class GrpcChannelProperties {
      * {@link ChronoUnit#SECONDS SECONDS}.
      *
      * @param keepAliveTimeout The default timeout for a keepAlives ping request.
-     *
      * @see #setEnableKeepAlive(Boolean)
      * @see NettyServerBuilder#keepAliveTimeout(long, TimeUnit)
      */
@@ -242,7 +235,6 @@ public class GrpcChannelProperties {
      * Gets whether keepAlive will be performed when there are no outstanding RPC on a connection.
      *
      * @return True, if keepAlives should be performed even when there are no RPCs. False otherwise.
-     *
      * @see #setKeepAliveWithoutCalls(Boolean)
      */
     public boolean isKeepAliveWithoutCalls() {
@@ -254,8 +246,7 @@ public class GrpcChannelProperties {
      * {@code false}.
      *
      * @param keepAliveWithoutCalls whether keepAlive will be performed when there are no outstanding RPC on a
-     *        connection.
-     *
+     *                              connection.
      * @see #setEnableKeepAlive(Boolean)
      * @see NettyChannelBuilder#keepAliveWithoutCalls(boolean)
      */
@@ -276,7 +267,6 @@ public class GrpcChannelProperties {
      * the highest possible limit (not recommended).
      *
      * @return The maximum message size allowed or null if the default should be used.
-     *
      * @see #setMaxInboundMessageSize(DataSize)
      */
     public DataSize getMaxInboundMessageSize() {
@@ -289,8 +279,7 @@ public class GrpcChannelProperties {
      * the highest possible limit (not recommended).
      *
      * @param maxInboundMessageSize The new maximum size in bytes allowed for incoming messages. {@code -1} for max
-     *        possible. Null to use the gRPC's default.
-     *
+     *                              possible. Null to use the gRPC's default.
      * @see ManagedChannelBuilder#maxInboundMessageSize(int)
      */
     public void setMaxInboundMessageSize(final DataSize maxInboundMessageSize) {
@@ -312,7 +301,6 @@ public class GrpcChannelProperties {
      * Gets whether full-stream decompression of inbound streams should be enabled.
      *
      * @return True, if full-stream decompression of inbound streams should be enabled. False otherwise.
-     *
      * @see #setFullStreamDecompression(Boolean)
      */
     public boolean isFullStreamDecompression() {
@@ -325,7 +313,6 @@ public class GrpcChannelProperties {
      * respond with a GZIP compressed stream.
      *
      * @param fullStreamDecompression Whether full stream decompression should be enabled or null to use the fallback.
-     *
      * @see ManagedChannelBuilder#enableFullStreamDecompression()
      */
     public void setFullStreamDecompression(final Boolean fullStreamDecompression) {
@@ -341,7 +328,6 @@ public class GrpcChannelProperties {
      * Gets the negotiation type to use on the connection.
      *
      * @return The negotiation type that the channel will use.
-     *
      * @see #setNegotiationType(NegotiationType)
      */
     public NegotiationType getNegotiationType() {
@@ -426,7 +412,6 @@ public class GrpcChannelProperties {
          * Gets whether client can authenticate using certificates.
          *
          * @return True, if the client can authenticate itself using certificates.
-         *
          * @see #setClientAuthEnabled(Boolean)
          */
         public boolean isClientAuthEnabled() {
@@ -461,7 +446,6 @@ public class GrpcChannelProperties {
          * The linked certificate will be used to authenticate the client.
          *
          * @param certificateChain The certificate chain.
-         *
          * @see SslContextBuilder#keyManager(InputStream, InputStream, String)
          */
         public void setCertificateChain(final Resource certificateChain) {
@@ -476,7 +460,6 @@ public class GrpcChannelProperties {
          * Gets resource containing the private key.
          *
          * @return The private key resource or null, if security is not enabled.
-         *
          * @see #setPrivateKey(Resource)
          */
         public Resource getPrivateKey() {
@@ -487,7 +470,6 @@ public class GrpcChannelProperties {
          * Sets the resource containing the private key. Required if {@link #isClientAuthEnabled} is true.
          *
          * @param privateKey The private key resource.
-         *
          * @see SslContextBuilder#keyManager(InputStream, InputStream, String)
          */
         public void setPrivateKey(final Resource privateKey) {
@@ -502,7 +484,6 @@ public class GrpcChannelProperties {
          * Gets the password for the private key.
          *
          * @return The password for the private key or null, if the private key is not set or not encrypted.
-         *
          * @see #setPrivateKeyPassword(String)
          */
         public String getPrivateKeyPassword() {
@@ -513,7 +494,6 @@ public class GrpcChannelProperties {
          * Sets the password for the private key.
          *
          * @param privateKeyPassword The password for the private key.
-         *
          * @see SslContextBuilder#keyManager(File, File, String)
          */
         public void setPrivateKeyPassword(final String privateKeyPassword) {
@@ -529,7 +509,6 @@ public class GrpcChannelProperties {
          * system's default collection should be used.
          *
          * @return The trusted certificate collection resource or null.
-         *
          * @see #setTrustCertCollection(Resource)
          */
         public Resource getTrustCertCollection() {
@@ -541,7 +520,6 @@ public class GrpcChannelProperties {
          * system's default collection (Default). This collection will be used to verify server certificates.
          *
          * @param trustCertCollection The path to the trusted certificate collection.
-         *
          * @see SslContextBuilder#trustManager(InputStream)
          */
         public void setTrustCertCollection(final Resource trustCertCollection) {
@@ -556,7 +534,6 @@ public class GrpcChannelProperties {
          * Gets the authority to check for during server certificate verification.
          *
          * @return The override for the authority to check for or null, there is no override configured.
-         *
          * @see #setAuthorityOverride(String)
          */
         public String getAuthorityOverride() {
@@ -568,7 +545,6 @@ public class GrpcChannelProperties {
          * name of the client to check the server certificate's common + alternative names.
          *
          * @param authorityOverride The authority to check for in the certificate, or null to use the default checks.
-         *
          * @see NettyChannelBuilder#overrideAuthority(String)
          */
         public void setAuthorityOverride(final String authorityOverride) {
@@ -593,7 +569,6 @@ public class GrpcChannelProperties {
          * then the default suites should be used.
          *
          * @param ciphers Cipher suite consisting of one or more cipher strings separated by colons, commas or spaces
-         *
          * @see SslContextBuilder#ciphers(Iterable)
          */
         public void setCiphers(final String ciphers) {
@@ -622,7 +597,6 @@ public class GrpcChannelProperties {
          * be used.
          *
          * @param protocols Protocol list consisting of one or more protocols separated by colons, commas or spaces.
-         *
          * @see SslContextBuilder#protocols(String...)
          */
         public void setProtocols(final String protocols) {

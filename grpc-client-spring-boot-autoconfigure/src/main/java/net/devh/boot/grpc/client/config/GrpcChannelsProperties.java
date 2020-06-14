@@ -17,15 +17,16 @@
 
 package net.devh.boot.grpc.client.config;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-
 /**
+ * Channel的属性，每个channel都有自己的属性配置
+ * <p>
  * A container for named channel properties. Each channel has its own configuration. If you try to get a channel that
  * does not have a configuration yet, it will be created. If something is not configured in the channel properties, it
  * will be copied from the global config during the first retrieval. If some property is configured in neither the
@@ -71,6 +72,7 @@ public class GrpcChannelsProperties {
     }
 
     /**
+     * 获取全局的 Channel 配置，如果 channel没有单独配置，则使用全局配置，如果全局配置也没有则使用默认配置
      * Gets the global channel properties. Global properties are used, if the channel properties don't overwrite them.
      * If neither the global nor the per client properties are set then default values will be used.
      *
@@ -83,6 +85,7 @@ public class GrpcChannelsProperties {
     }
 
     /**
+     * 根据名称获取 Channel，如果不存在则创建新的
      * Gets or creates the channel properties for the given client.
      *
      * @param name The name of the channel to get the properties for.

@@ -17,18 +17,17 @@
 
 package net.devh.boot.grpc.client.channelfactory;
 
-import static java.util.Objects.requireNonNull;
+import com.google.common.collect.ImmutableMap;
+import io.grpc.Channel;
+import io.grpc.ClientInterceptor;
+import io.grpc.ConnectivityState;
+import net.devh.boot.grpc.client.config.GrpcChannelsProperties;
 
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
-import com.google.common.collect.ImmutableMap;
-
-import io.grpc.Channel;
-import io.grpc.ClientInterceptor;
-import io.grpc.ConnectivityState;
-import net.devh.boot.grpc.client.config.GrpcChannelsProperties;
+import static java.util.Objects.requireNonNull;
 
 /**
  * This channel factory is a switch between the {@link InProcessChannelFactory} and an alternative implementation. All
@@ -61,25 +60,32 @@ public class InProcessOrAlternativeChannelFactory implements GrpcChannelFactory 
     /**
      * Creates a new InProcessOrAlternativeChannelFactory with the given properties and channel factories.
      *
-     * @param properties The properties used to resolved the target scheme
-     * @param inProcessChannelFactory The in process channel factory implementation to use.
+     * @param properties                The properties used to resolved the target scheme
+     * @param inProcessChannelFactory   The in process channel factory implementation to use.
      * @param alternativeChannelFactory The alternative channel factory implementation to use.
      */
     public InProcessOrAlternativeChannelFactory(final GrpcChannelsProperties properties,
-            final InProcessChannelFactory inProcessChannelFactory, final GrpcChannelFactory alternativeChannelFactory) {
+                                                final InProcessChannelFactory inProcessChannelFactory,
+                                                final GrpcChannelFactory alternativeChannelFactory) {
         this.properties = requireNonNull(properties, "properties");
         this.inProcessChannelFactory = requireNonNull(inProcessChannelFactory, "inProcessChannelFactory");
         this.alternativeChannelFactory = requireNonNull(alternativeChannelFactory, "alternativeChannelFactory");
     }
 
+    /**
+     * 根据应用名称，拦截器，是否排序创建 channel
+     */
     @Override
-    public Channel createChannel(final String name, final List<ClientInterceptor> interceptors,
-            boolean sortInterceptors) {
+    public Channel createChannel(final String name,
+                                 final List<ClientInterceptor> interceptors,
+                                 boolean sortInterceptors) {
+        // 获取 channel 地址
         final URI address = this.properties.getChannel(name).getAddress();
+        // 如果地址不为空，且 schema是 IN_PROCESS_SCHEME，使用 inProcessChannelFactory 创建channel， 最终调用AbstractChannelFactory 的方法
         if (address != null && IN_PROCESS_SCHEME.equals(address.getScheme())) {
-            return this.inProcessChannelFactory.createChannel(address.getSchemeSpecificPart(), interceptors,
-                    sortInterceptors);
+            return this.inProcessChannelFactory.createChannel(address.getSchemeSpecificPart(), interceptors, sortInterceptors);
         }
+        // 地址为空或 schema 不是 IN_PROCESS_SCHEME， 使用alternativeChannelFactory 创建
         return this.alternativeChannelFactory.createChannel(name, interceptors, sortInterceptors);
     }
 

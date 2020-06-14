@@ -17,13 +17,14 @@
 
 package net.devh.boot.grpc.client.channelfactory;
 
-import static java.util.Objects.requireNonNull;
+import io.grpc.ManagedChannelBuilder;
 
 import java.util.function.BiConsumer;
 
-import io.grpc.ManagedChannelBuilder;
+import static java.util.Objects.requireNonNull;
 
 /**
+ * ManagedChannelBuilder 的配置，用于 GrpcChannelFactory 创建定制的channel
  * A configurer for {@link ManagedChannelBuilder}s which can be used by {@link GrpcChannelFactory} to customize the
  * created channels.
  *

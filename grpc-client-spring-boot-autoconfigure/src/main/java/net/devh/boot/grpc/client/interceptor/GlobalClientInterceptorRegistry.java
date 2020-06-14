@@ -17,22 +17,21 @@
 
 package net.devh.boot.grpc.client.interceptor;
 
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.PostConstruct;
-
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import io.grpc.ClientInterceptor;
+import io.grpc.ClientInterceptors;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-
-import io.grpc.ClientInterceptor;
-import io.grpc.ClientInterceptors;
+import javax.annotation.PostConstruct;
+import java.util.List;
+import java.util.Map;
 
 /**
+ * 全局的 Client 拦截器注册
+ * <p>
  * The global client interceptor registry keeps references to all {@link ClientInterceptor}s that should be registered
  * globally. The interceptors will be applied in the same order they as specified by the {@link #sortInterceptors(List)}
  * method.
@@ -58,14 +57,16 @@ public class GlobalClientInterceptorRegistry implements ApplicationContextAware 
 
     @PostConstruct
     public void init() {
-        final Map<String, GlobalClientInterceptorConfigurer> map =
-                this.applicationContext.getBeansOfType(GlobalClientInterceptorConfigurer.class);
+        // 获取拦截器配置
+        final Map<String, GlobalClientInterceptorConfigurer> map = this.applicationContext.getBeansOfType(GlobalClientInterceptorConfigurer.class);
         for (final GlobalClientInterceptorConfigurer globalClientInterceptorConfigurer : map.values()) {
+            // 将当前拦截器配置添加到全局配置中
             globalClientInterceptorConfigurer.addClientInterceptors(this);
         }
     }
 
     /**
+     * 将给定的拦截器添加到全局拦截器中
      * Adds the given {@link ClientInterceptor} to the list of globally registered interceptors.
      *
      * @param interceptor The interceptor to add.
@@ -78,6 +79,7 @@ public class GlobalClientInterceptorRegistry implements ApplicationContextAware 
     }
 
     /**
+     * 获取全局拦截器
      * Gets the immutable and sorted list of global server interceptors.
      *
      * @return The list of globally registered server interceptors.
@@ -85,6 +87,7 @@ public class GlobalClientInterceptorRegistry implements ApplicationContextAware 
     public ImmutableList<ClientInterceptor> getClientInterceptors() {
         if (this.sortedClientInterceptors == null) {
             List<ClientInterceptor> temp = Lists.newArrayList(this.clientInterceptors);
+            // 拦截器排序
             sortInterceptors(temp);
             this.sortedClientInterceptors = ImmutableList.copyOf(temp);
         }

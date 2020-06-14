@@ -47,7 +47,9 @@ import org.springframework.context.annotation.Lazy;
 import java.util.Collections;
 import java.util.List;
 
+
 /**
+ * 初始化 gRPC 的 Bean
  * The auto configuration used by Spring-Boot that contains all beans to create and inject grpc clients into beans.
  *
  * @author Michael (yidongnan@gmail.com)
@@ -59,23 +61,45 @@ import java.util.List;
         value = GrpcCommonCodecAutoConfiguration.class)
 public class GrpcClientAutoConfiguration {
 
+    /**
+     * Bean 初始化后注入 Stub属性
+     *
+     * @param applicationContext
+     * @return
+     */
     @Bean
     static GrpcClientBeanPostProcessor grpcClientBeanPostProcessor(final ApplicationContext applicationContext) {
         return new GrpcClientBeanPostProcessor(applicationContext);
     }
 
+
+    /**
+     * Channel 属性配置
+     *
+     * @return
+     */
     @ConditionalOnMissingBean
     @Bean
     GrpcChannelsProperties grpcChannelsProperties() {
         return new GrpcChannelsProperties();
     }
 
+    /**
+     * 全局的 Client 拦截器注册
+     *
+     * @return
+     */
     @ConditionalOnMissingBean
     @Bean
     GlobalClientInterceptorRegistry globalClientInterceptorRegistry() {
         return new GlobalClientInterceptorRegistry();
     }
 
+    /**
+     * 查找 GrpcGlobalClientInterceptor 修饰的拦截器并加入到拦截器配置中
+     *
+     * @return
+     */
     @Bean
     AnnotationGlobalClientInterceptorConfigurer annotationGlobalClientInterceptorConfigurer() {
         return new AnnotationGlobalClientInterceptorConfigurer();
@@ -98,6 +122,12 @@ public class GrpcClientAutoConfiguration {
         return nameResolverRegistration;
     }
 
+    /**
+     * ManagedChannelBuilder 的配置，GrpcChannelFactory 创建定制的channel
+     *
+     * @param registry
+     * @return
+     */
     @ConditionalOnBean(CompressorRegistry.class)
     @Bean
     GrpcChannelConfigurer compressionChannelConfigurer(final CompressorRegistry registry) {
@@ -110,6 +140,11 @@ public class GrpcClientAutoConfiguration {
         return (builder, name) -> builder.decompressorRegistry(registry);
     }
 
+    /**
+     * 默认channel 配置
+     *
+     * @return
+     */
     @ConditionalOnMissingBean(GrpcChannelConfigurer.class)
     @Bean
     List<GrpcChannelConfigurer> defaultChannelConfigurers() {
@@ -118,17 +153,14 @@ public class GrpcClientAutoConfiguration {
 
     // First try the shaded netty channel factory
     @ConditionalOnMissingBean(GrpcChannelFactory.class)
-    @ConditionalOnClass(name = {"io.grpc.netty.shaded.io.netty.channel.Channel",
-            "io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder"})
+    @ConditionalOnClass(name = {"io.grpc.netty.shaded.io.netty.channel.Channel", "io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder"})
     @Bean
     @Lazy
     GrpcChannelFactory shadedNettyGrpcChannelFactory(final GrpcChannelsProperties properties,
                                                      final GlobalClientInterceptorRegistry globalClientInterceptorRegistry,
                                                      final List<GrpcChannelConfigurer> channelConfigurers) {
-        final ShadedNettyChannelFactory channelFactory =
-                new ShadedNettyChannelFactory(properties, globalClientInterceptorRegistry, channelConfigurers);
-        final InProcessChannelFactory inProcessChannelFactory =
-                new InProcessChannelFactory(properties, globalClientInterceptorRegistry, channelConfigurers);
+        final ShadedNettyChannelFactory channelFactory = new ShadedNettyChannelFactory(properties, globalClientInterceptorRegistry, channelConfigurers);
+        final InProcessChannelFactory inProcessChannelFactory = new InProcessChannelFactory(properties, globalClientInterceptorRegistry, channelConfigurers);
         return new InProcessOrAlternativeChannelFactory(properties, inProcessChannelFactory, channelFactory);
     }
 
@@ -140,10 +172,8 @@ public class GrpcClientAutoConfiguration {
     GrpcChannelFactory nettyGrpcChannelFactory(final GrpcChannelsProperties properties,
                                                final GlobalClientInterceptorRegistry globalClientInterceptorRegistry,
                                                final List<GrpcChannelConfigurer> channelConfigurers) {
-        final NettyChannelFactory channelFactory =
-                new NettyChannelFactory(properties, globalClientInterceptorRegistry, channelConfigurers);
-        final InProcessChannelFactory inProcessChannelFactory =
-                new InProcessChannelFactory(properties, globalClientInterceptorRegistry, channelConfigurers);
+        final NettyChannelFactory channelFactory = new NettyChannelFactory(properties, globalClientInterceptorRegistry, channelConfigurers);
+        final InProcessChannelFactory inProcessChannelFactory = new InProcessChannelFactory(properties, globalClientInterceptorRegistry, channelConfigurers);
         return new InProcessOrAlternativeChannelFactory(properties, inProcessChannelFactory, channelFactory);
     }
 
