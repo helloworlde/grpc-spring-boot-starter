@@ -17,17 +17,17 @@
 
 package net.devh.boot.grpc.client.autoconfigure;
 
+import io.grpc.CallCredentials;
+import io.grpc.stub.AbstractStub;
+import net.devh.boot.grpc.client.inject.StubTransformer;
+import net.devh.boot.grpc.client.security.CallCredentialsHelper;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnSingleCandidate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import io.grpc.CallCredentials;
-import io.grpc.stub.AbstractStub;
-import net.devh.boot.grpc.client.inject.StubTransformer;
-import net.devh.boot.grpc.client.security.CallCredentialsHelper;
-
 /**
+ * Client 端安全配置
  * The security auto configuration for the client.
  *
  * <p>
@@ -45,17 +45,19 @@ import net.devh.boot.grpc.client.security.CallCredentialsHelper;
 public class GrpcClientSecurityAutoConfiguration {
 
     /**
+     * 创建 StubTransformer 的bean，会将证书添加到创建的 stub中
      * Creates a {@link StubTransformer} bean that will add the call credentials to the created stubs.
      *
      * <p>
      * <b>Note:</b> This method will only be applied if exactly one {@link CallCredentials} is in the application
      * context.
+     * 只有当上下文中有 CallCredentials 时该方法才会生效
      * </p>
      *
      * @param credentials The call credentials to configure in the stubs.
      * @return The StubTransformer bean that will add the given credentials.
-     * @see AbstractStub#withCallCredentials(CallCredentials)
      * @sse {@link CallCredentialsHelper#fixedCredentialsStubTransformer(CallCredentials)}
+     * @see AbstractStub#withCallCredentials(CallCredentials)
      */
     @ConditionalOnSingleCandidate(CallCredentials.class)
     @Bean

@@ -17,19 +17,6 @@
 
 package net.devh.boot.grpc.client.security;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Objects.requireNonNull;
-import static net.devh.boot.grpc.common.security.SecurityConstants.AUTHORIZATION_HEADER;
-import static net.devh.boot.grpc.common.security.SecurityConstants.BASIC_AUTH_PREFIX;
-import static net.devh.boot.grpc.common.security.SecurityConstants.BEARER_AUTH_PREFIX;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.Map;
-import java.util.concurrent.Executor;
-
-import javax.annotation.Nullable;
-
 import io.grpc.CallCredentials;
 import io.grpc.Channel;
 import io.grpc.Metadata;
@@ -39,6 +26,18 @@ import io.grpc.stub.AbstractStub;
 import net.devh.boot.grpc.client.autoconfigure.GrpcClientSecurityAutoConfiguration;
 import net.devh.boot.grpc.client.inject.GrpcClient;
 import net.devh.boot.grpc.client.inject.StubTransformer;
+
+import javax.annotation.Nullable;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.Map;
+import java.util.concurrent.Executor;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Objects.requireNonNull;
+import static net.devh.boot.grpc.common.security.SecurityConstants.AUTHORIZATION_HEADER;
+import static net.devh.boot.grpc.common.security.SecurityConstants.BASIC_AUTH_PREFIX;
+import static net.devh.boot.grpc.common.security.SecurityConstants.BEARER_AUTH_PREFIX;
 
 /**
  * Helper class with useful methods to create and configure some commonly used authentication schemes such as
@@ -133,28 +132,7 @@ public class CallCredentialsHelper {
         return mappedCredentialsStubTransformer(credentialsByName, null);
     }
 
-    /**
-     * Creates a new {@link StubTransformer} that will assign credentials to the given {@link AbstractStub} based on the
-     * name. If the given map does not contain a value for the given name, then the optional fallback will be used
-     * otherwise the call credentials will be omitted.
-     *
-     * @param credentialsByName The map that contains the call credentials.
-     * @param fallback The optional fallback to use.
-     * @return The transformed stub.
-     * @see AbstractStub#withCallCredentials(CallCredentials)
-     */
-    public static StubTransformer mappedCredentialsStubTransformer(
-            final Map<String, CallCredentials> credentialsByName,
-            @Nullable final CallCredentials fallback) {
-        requireNonNull(credentialsByName, "credentials");
-        return (name, stub) -> {
-            final CallCredentials credentials = credentialsByName.getOrDefault(name, fallback);
-            if (credentials == null) {
-                return stub;
-            } else {
-                return stub.withCallCredentials(credentials);
-            }
-        };
+    private CallCredentialsHelper() {
     }
 
     /**
@@ -212,31 +190,27 @@ public class CallCredentialsHelper {
     }
 
     /**
-     * The static security header {@link CallCredentials} simply add a set of predefined headers to the call. Their
-     * specific meaning is server specific. This implementation can be used, for example, for BasicAuth.
+     * Creates a new {@link StubTransformer} that will assign credentials to the given {@link AbstractStub} based on the
+     * name. If the given map does not contain a value for the given name, then the optional fallback will be used
+     * otherwise the call credentials will be omitted.
+     *
+     * @param credentialsByName The map that contains the call credentials.
+     * @param fallback          The optional fallback to use.
+     * @return The transformed stub.
+     * @see AbstractStub#withCallCredentials(CallCredentials)
      */
-    private static final class StaticSecurityHeaderCallCredentials extends CallCredentials {
-
-        private final Metadata extraHeaders;
-
-        StaticSecurityHeaderCallCredentials(final Metadata extraHeaders) {
-            this.extraHeaders = requireNonNull(extraHeaders, "extraHeaders");
-        }
-
-        @Override
-        public void applyRequestMetadata(final RequestInfo requestInfo, final Executor appExecutor,
-                final MetadataApplier applier) {
-            applier.apply(this.extraHeaders);
-        }
-
-        @Override
-        public void thisUsesUnstableApi() {} // API evolution in progress
-
-        @Override
-        public String toString() {
-            return "StaticSecurityHeaderCallCredentials [extraHeaders=" + this.extraHeaders + "]";
-        }
-
+    public static StubTransformer mappedCredentialsStubTransformer(
+            final Map<String, CallCredentials> credentialsByName,
+            @Nullable final CallCredentials fallback) {
+        requireNonNull(credentialsByName, "credentials");
+        return (name, stub) -> {
+            final CallCredentials credentials = credentialsByName.getOrDefault(name, fallback);
+            if (credentials == null) {
+                return stub;
+            } else {
+                return stub.withCallCredentials(credentials);
+            }
+        };
     }
 
     /**
@@ -270,38 +244,30 @@ public class CallCredentialsHelper {
     }
 
     /**
-     * A call credentials implementation with slightly increased security requirements. It ensures that the credentials
-     * aren't send via an insecure connection. However, it does not prevent requests via insecure connections. This
-     * wrapper does not have any other influence on the security of the underlying {@link CallCredentials}
-     * implementation.
+     * The static security header {@link CallCredentials} simply add a set of predefined headers to the call. Their
+     * specific meaning is server specific. This implementation can be used, for example, for BasicAuth.
      */
-    private static final class RequirePrivacyCallCredentials extends CallCredentials {
+    private static final class StaticSecurityHeaderCallCredentials extends CallCredentials {
 
-        private static final Status STATUS_LACKING_PRIVACY = Status.UNAUTHENTICATED
-                .withDescription("Connection security level does not ensure credential privacy");
+        private final Metadata extraHeaders;
 
-        private final CallCredentials callCredentials;
-
-        RequirePrivacyCallCredentials(final CallCredentials callCredentials) {
-            this.callCredentials = callCredentials;
+        StaticSecurityHeaderCallCredentials(final Metadata extraHeaders) {
+            this.extraHeaders = requireNonNull(extraHeaders, "extraHeaders");
         }
 
         @Override
         public void applyRequestMetadata(final RequestInfo requestInfo, final Executor appExecutor,
-                final MetadataApplier applier) {
-            if (isPrivacyGuaranteed(requestInfo.getSecurityLevel())) {
-                this.callCredentials.applyRequestMetadata(requestInfo, appExecutor, applier);
-            } else {
-                applier.fail(STATUS_LACKING_PRIVACY);
-            }
+                                         final MetadataApplier applier) {
+            applier.apply(this.extraHeaders);
         }
 
         @Override
-        public void thisUsesUnstableApi() {} // API evolution in progress
+        public void thisUsesUnstableApi() {
+        } // API evolution in progress
 
         @Override
         public String toString() {
-            return "RequirePrivacyCallCredentials [callCredentials=" + this.callCredentials + "]";
+            return "StaticSecurityHeaderCallCredentials [extraHeaders=" + this.extraHeaders + "]";
         }
 
     }
@@ -322,6 +288,44 @@ public class CallCredentialsHelper {
     }
 
     /**
+     * A call credentials implementation with slightly increased security requirements. It ensures that the credentials
+     * aren't send via an insecure connection. However, it does not prevent requests via insecure connections. This
+     * wrapper does not have any other influence on the security of the underlying {@link CallCredentials}
+     * implementation.
+     */
+    private static final class RequirePrivacyCallCredentials extends CallCredentials {
+
+        private static final Status STATUS_LACKING_PRIVACY = Status.UNAUTHENTICATED
+                .withDescription("Connection security level does not ensure credential privacy");
+
+        private final CallCredentials callCredentials;
+
+        RequirePrivacyCallCredentials(final CallCredentials callCredentials) {
+            this.callCredentials = callCredentials;
+        }
+
+        @Override
+        public void applyRequestMetadata(final RequestInfo requestInfo, final Executor appExecutor,
+                                         final MetadataApplier applier) {
+            if (isPrivacyGuaranteed(requestInfo.getSecurityLevel())) {
+                this.callCredentials.applyRequestMetadata(requestInfo, appExecutor, applier);
+            } else {
+                applier.fail(STATUS_LACKING_PRIVACY);
+            }
+        }
+
+        @Override
+        public void thisUsesUnstableApi() {
+        } // API evolution in progress
+
+        @Override
+        public String toString() {
+            return "RequirePrivacyCallCredentials [callCredentials=" + this.callCredentials + "]";
+        }
+
+    }
+
+    /**
      * A call credentials implementation with increased security requirements. It ensures that the credentials and
      * requests aren't send via an insecure connection. This wrapper does not have any other influence on the security
      * of the underlying {@link CallCredentials} implementation.
@@ -336,14 +340,15 @@ public class CallCredentialsHelper {
 
         @Override
         public void applyRequestMetadata(final RequestInfo requestInfo, final Executor appExecutor,
-                final MetadataApplier applier) {
+                                         final MetadataApplier applier) {
             if (isPrivacyGuaranteed(requestInfo.getSecurityLevel())) {
                 this.callCredentials.applyRequestMetadata(requestInfo, appExecutor, applier);
             }
         }
 
         @Override
-        public void thisUsesUnstableApi() {} // API evolution in progress
+        public void thisUsesUnstableApi() {
+        } // API evolution in progress
 
         @Override
         public String toString() {
@@ -351,7 +356,5 @@ public class CallCredentialsHelper {
         }
 
     }
-
-    private CallCredentialsHelper() {}
 
 }
