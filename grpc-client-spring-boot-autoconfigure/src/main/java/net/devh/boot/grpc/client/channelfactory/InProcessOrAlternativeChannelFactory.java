@@ -30,6 +30,9 @@ import java.util.Map;
 import static java.util.Objects.requireNonNull;
 
 /**
+ * 这个 Channel 工厂是 InProcessChannelFactory 和 alternative 之间的开关，
+ * schema 为 in-process 的 channel 会使用 in-process-channel-factory,
+ * 其他的 channel 会通过 alternative 实现处理
  * This channel factory is a switch between the {@link InProcessChannelFactory} and an alternative implementation. All
  * channels that are configured with the {@code in-process} scheme will be handled by the in-process-channel-factory,
  * the other channels will be handled by the alternative implementation.
@@ -58,6 +61,7 @@ public class InProcessOrAlternativeChannelFactory implements GrpcChannelFactory 
     private final GrpcChannelFactory alternativeChannelFactory;
 
     /**
+     * 根据所给的属性创建 InProcessOrAlternativeChannelFactory
      * Creates a new InProcessOrAlternativeChannelFactory with the given properties and channel factories.
      *
      * @param properties                The properties used to resolved the target scheme
@@ -89,6 +93,11 @@ public class InProcessOrAlternativeChannelFactory implements GrpcChannelFactory 
         return this.alternativeChannelFactory.createChannel(name, interceptors, sortInterceptors);
     }
 
+    /**
+     * 返回 channel 连接状态
+     *
+     * @return
+     */
     @Override
     public Map<String, ConnectivityState> getConnectivityState() {
         return ImmutableMap.<String, ConnectivityState>builder()

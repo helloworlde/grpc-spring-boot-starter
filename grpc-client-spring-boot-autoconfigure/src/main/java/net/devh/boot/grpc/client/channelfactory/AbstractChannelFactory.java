@@ -69,6 +69,7 @@ public abstract class AbstractChannelFactory<T extends ManagedChannelBuilder<T>>
     private boolean shutdown = false;
 
     /**
+     * 使用初始化的引用创建新的AbstractChannelFactory
      * Creates a new AbstractChannelFactory with eager initialized references.
      *
      * @param properties                      The properties for the channels to create.
@@ -79,8 +80,7 @@ public abstract class AbstractChannelFactory<T extends ManagedChannelBuilder<T>>
                                   final GlobalClientInterceptorRegistry globalClientInterceptorRegistry,
                                   final List<GrpcChannelConfigurer> channelConfigurers) {
         this.properties = requireNonNull(properties, "properties");
-        this.globalClientInterceptorRegistry =
-                requireNonNull(globalClientInterceptorRegistry, "globalClientInterceptorRegistry");
+        this.globalClientInterceptorRegistry = requireNonNull(globalClientInterceptorRegistry, "globalClientInterceptorRegistry");
         this.channelConfigurers = requireNonNull(channelConfigurers, "channelConfigurers");
     }
 
@@ -90,10 +90,11 @@ public abstract class AbstractChannelFactory<T extends ManagedChannelBuilder<T>>
     }
 
     /**
-     * 创建 Channel
+     * 指定服务名称，拦截器和是否排序创建 Channel
      */
     @Override
-    public Channel createChannel(final String name, final List<ClientInterceptor> customInterceptors,
+    public Channel createChannel(final String name,
+                                 final List<ClientInterceptor> customInterceptors,
                                  final boolean sortInterceptors) {
         final Channel channel;
         synchronized (this) {
@@ -114,6 +115,7 @@ public abstract class AbstractChannelFactory<T extends ManagedChannelBuilder<T>>
     }
 
     /**
+     * 根据服务名称创建 ManagedChannelBuilder
      * Creates a new {@link ManagedChannelBuilder} for the given client name.
      *
      * @param name The name to create the channel builder for.
@@ -122,6 +124,8 @@ public abstract class AbstractChannelFactory<T extends ManagedChannelBuilder<T>>
     protected abstract T newChannelBuilder(String name);
 
     /**
+     * 根据所给的服务名称，创建 ManagedChannel，该名称将用于确定新 Channel 的属性，
+     * 调用方法负责所创建通道的生命周期管理，如果可能的话，应该重用ManagedChannels以允许连接重用
      * Creates a new {@link ManagedChannel} for the given client name. The name will be used to determine the properties
      * for the new channel. The calling method is responsible for lifecycle management of the created channel.
      * ManagedChannels should be reused if possible to allow connection reuse.
@@ -132,14 +136,18 @@ public abstract class AbstractChannelFactory<T extends ManagedChannelBuilder<T>>
      * @see #configure(ManagedChannelBuilder, String)
      */
     protected ManagedChannel newManagedChannel(final String name) {
+        // 创建 ManagedChannelBuilder
         final T builder = newChannelBuilder(name);
+        // 添加配置
         configure(builder, name);
         final ManagedChannel channel = builder.build();
+        // 监视连接状态变化
         watchConnectivityState(name, channel);
         return channel;
     }
 
     /**
+     * 根据服务名称获取属性
      * Gets the channel properties for the given client name.
      *
      * @param name The client name to use.
@@ -150,6 +158,7 @@ public abstract class AbstractChannelFactory<T extends ManagedChannelBuilder<T>>
     }
 
     /**
+     * 配置指定的 ManagedChannelBuilder
      * Configures the given channel builder. This method can be overwritten to add features that are not yet supported
      * by this library.
      *
@@ -157,16 +166,22 @@ public abstract class AbstractChannelFactory<T extends ManagedChannelBuilder<T>>
      * @param name    The name of the client to configure.
      */
     protected void configure(final T builder, final String name) {
+        // 配置 KeepAlive
         configureKeepAlive(builder, name);
+        // 配置安全属性
         configureSecurity(builder, name);
+        // 配置限制属性，如最大消息体大小
         configureLimits(builder, name);
+        // 配置压缩属性
         configureCompression(builder, name);
+        // 遍历所有的 channel 配置，设置属性
         for (final GrpcChannelConfigurer channelConfigurer : this.channelConfigurers) {
             channelConfigurer.accept(builder, name);
         }
     }
 
     /**
+     * 配置指定 ManagedChannelBuilder 的 keep alive
      * Configures the keep alive options that should be used by the channel.
      *
      * @param builder The channel builder to configure.
@@ -182,6 +197,7 @@ public abstract class AbstractChannelFactory<T extends ManagedChannelBuilder<T>>
     }
 
     /**
+     * 配置安全属性
      * Configures the security options that should be used by the channel.
      *
      * @param builder The channel builder to configure.
@@ -196,8 +212,7 @@ public abstract class AbstractChannelFactory<T extends ManagedChannelBuilder<T>>
                 || security.getCertificateChain() != null
                 || security.getPrivateKey() != null
                 || security.getTrustCertCollection() != null) {
-            throw new IllegalStateException(
-                    "Security is configured but this implementation does not support security!");
+            throw new IllegalStateException("Security is configured but this implementation does not support security!");
         }
     }
 
@@ -212,6 +227,7 @@ public abstract class AbstractChannelFactory<T extends ManagedChannelBuilder<T>>
     }
 
     /**
+     * 配置限制属性，如最大消息体大小
      * Configures limits such as max message sizes that should be used by the channel.
      *
      * @param builder The channel builder to configure.
@@ -226,6 +242,7 @@ public abstract class AbstractChannelFactory<T extends ManagedChannelBuilder<T>>
     }
 
     /**
+     * 配置压缩属性
      * Configures the compression options that should be used by the channel.
      *
      * @param builder The channel builder to configure.
@@ -244,14 +261,17 @@ public abstract class AbstractChannelFactory<T extends ManagedChannelBuilder<T>>
     }
 
     /**
+     * 监视给定 channel 的连接变化
      * Watch the given channel for connectivity changes.
      *
      * @param name    The name of the channel in the state overview.
      * @param channel The channel to watch the state of.
      */
     protected void watchConnectivityState(final String name, final ManagedChannel channel) {
+        // 获取连接状态
         final ConnectivityState state = channel.getState(false);
         this.channelStates.put(name, state);
+        // 如果状态发生变化，则发送通知
         if (state != ConnectivityState.SHUTDOWN) {
             channel.notifyWhenStateChanged(state, () -> watchConnectivityState(name, channel));
         }

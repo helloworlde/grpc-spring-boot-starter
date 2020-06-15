@@ -17,15 +17,16 @@
 
 package net.devh.boot.grpc.client.channelfactory;
 
-import java.util.Collections;
-import java.util.List;
-
 import io.grpc.inprocess.InProcessChannelBuilder;
 import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.client.config.GrpcChannelsProperties;
 import net.devh.boot.grpc.client.interceptor.GlobalClientInterceptorRegistry;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
+ * 创建和管理 in-progress channel 的 GrpcChannelFactory
  * This channel factory creates and manages in-process {@link GrpcChannelFactory}s.
  *
  * <p>
@@ -38,29 +39,37 @@ import net.devh.boot.grpc.client.interceptor.GlobalClientInterceptorRegistry;
 public class InProcessChannelFactory extends AbstractChannelFactory<InProcessChannelBuilder> {
 
     /**
+     * 根据channel 配置，拦截器注册器创建 InProcessChannelFactory
      * Creates a new InProcessChannelFactory with the given properties.
      *
-     * @param properties The properties for the channels to create.
+     * @param properties                      The properties for the channels to create.
      * @param globalClientInterceptorRegistry The interceptor registry to use.
      */
     public InProcessChannelFactory(final GrpcChannelsProperties properties,
-            final GlobalClientInterceptorRegistry globalClientInterceptorRegistry) {
+                                   final GlobalClientInterceptorRegistry globalClientInterceptorRegistry) {
         this(properties, globalClientInterceptorRegistry, Collections.emptyList());
     }
 
     /**
+     * 根据channel 配置，拦截器注册器和 channel 配置创建 InProcessChannelFactory
      * Creates a new InProcessChannelFactory with the given properties.
      *
-     * @param properties The properties for the channels to create.
+     * @param properties                      The properties for the channels to create.
      * @param globalClientInterceptorRegistry The interceptor registry to use.
-     * @param channelConfigurers The channel configurers to use. Can be empty.
+     * @param channelConfigurers              The channel configurers to use. Can be empty.
      */
     public InProcessChannelFactory(final GrpcChannelsProperties properties,
-            final GlobalClientInterceptorRegistry globalClientInterceptorRegistry,
-            final List<GrpcChannelConfigurer> channelConfigurers) {
+                                   final GlobalClientInterceptorRegistry globalClientInterceptorRegistry,
+                                   final List<GrpcChannelConfigurer> channelConfigurers) {
         super(properties, globalClientInterceptorRegistry, channelConfigurers);
     }
 
+    /**
+     * 根据应用名称创建 InProcessChannelBuilder
+     *
+     * @param name The name to create the channel builder for.
+     * @return
+     */
     @Override
     protected InProcessChannelBuilder newChannelBuilder(final String name) {
         log.debug("Creating new channel: {}", name);

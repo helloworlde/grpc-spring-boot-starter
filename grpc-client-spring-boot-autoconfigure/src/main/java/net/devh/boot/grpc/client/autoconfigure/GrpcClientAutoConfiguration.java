@@ -151,6 +151,14 @@ public class GrpcClientAutoConfiguration {
         return Collections.emptyList();
     }
 
+    /**
+     * 尝试创建 Shaded Netty
+     *
+     * @param properties
+     * @param globalClientInterceptorRegistry
+     * @param channelConfigurers
+     * @return
+     */
     // First try the shaded netty channel factory
     @ConditionalOnMissingBean(GrpcChannelFactory.class)
     @ConditionalOnClass(name = {"io.grpc.netty.shaded.io.netty.channel.Channel", "io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder"})
@@ -159,6 +167,7 @@ public class GrpcClientAutoConfiguration {
     GrpcChannelFactory shadedNettyGrpcChannelFactory(final GrpcChannelsProperties properties,
                                                      final GlobalClientInterceptorRegistry globalClientInterceptorRegistry,
                                                      final List<GrpcChannelConfigurer> channelConfigurers) {
+        // alternativeChannelFactory
         final ShadedNettyChannelFactory channelFactory = new ShadedNettyChannelFactory(properties, globalClientInterceptorRegistry, channelConfigurers);
         final InProcessChannelFactory inProcessChannelFactory = new InProcessChannelFactory(properties, globalClientInterceptorRegistry, channelConfigurers);
         return new InProcessOrAlternativeChannelFactory(properties, inProcessChannelFactory, channelFactory);

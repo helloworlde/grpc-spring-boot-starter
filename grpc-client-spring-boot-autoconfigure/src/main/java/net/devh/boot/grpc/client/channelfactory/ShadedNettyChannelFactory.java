@@ -17,17 +17,6 @@
 
 package net.devh.boot.grpc.client.channelfactory;
 
-import static java.util.Objects.requireNonNull;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.util.List;
-
-import javax.net.ssl.SSLException;
-
-import org.springframework.core.io.Resource;
-
 import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import io.grpc.netty.shaded.io.netty.handler.ssl.SslContextBuilder;
@@ -36,8 +25,18 @@ import net.devh.boot.grpc.client.config.GrpcChannelProperties.Security;
 import net.devh.boot.grpc.client.config.GrpcChannelsProperties;
 import net.devh.boot.grpc.client.config.NegotiationType;
 import net.devh.boot.grpc.client.interceptor.GlobalClientInterceptorRegistry;
+import org.springframework.core.io.Resource;
+
+import javax.net.ssl.SSLException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.List;
+
+import static java.util.Objects.requireNonNull;
 
 /**
+ * 用于创建和管理基于 shaded netty 的 GrpcChannelFactory
  * This channel factory creates and manages shaded netty based {@link GrpcChannelFactory}s.
  *
  * <p>
@@ -50,29 +49,45 @@ import net.devh.boot.grpc.client.interceptor.GlobalClientInterceptorRegistry;
 public class ShadedNettyChannelFactory extends AbstractChannelFactory<NettyChannelBuilder> {
 
     /**
+     * 根据所给的参数创建 shaded netty 的 GrpcChannelFactory
      * Creates a new GrpcChannelFactory for shaded netty with the given options.
      *
-     * @param properties The properties for the channels to create.
+     * @param properties                      The properties for the channels to create.
      * @param globalClientInterceptorRegistry The interceptor registry to use.
-     * @param channelConfigurers The channel configurers to use. Can be empty.
+     * @param channelConfigurers              The channel configurers to use. Can be empty.
      */
     public ShadedNettyChannelFactory(final GrpcChannelsProperties properties,
-            final GlobalClientInterceptorRegistry globalClientInterceptorRegistry,
-            final List<GrpcChannelConfigurer> channelConfigurers) {
+                                     final GlobalClientInterceptorRegistry globalClientInterceptorRegistry,
+                                     final List<GrpcChannelConfigurer> channelConfigurers) {
         super(properties, globalClientInterceptorRegistry, channelConfigurers);
     }
 
+    /**
+     * 根据服务名称创建 NettyChannelBuilder
+     *
+     * @param name The name to create the channel builder for.
+     * @return
+     */
     @Override
     protected NettyChannelBuilder newChannelBuilder(final String name) {
+        // 获取配置
         final GrpcChannelProperties properties = getPropertiesFor(name);
+        // 获取地址，如果地址为空则根据服务名称创建
         URI address = properties.getAddress();
         if (address == null) {
             address = URI.create(name);
         }
+        // 使用地址和默认的负载均衡策略创建 NettyChannelBuilder
         return NettyChannelBuilder.forTarget(address.toString())
-                .defaultLoadBalancingPolicy(properties.getDefaultLoadBalancingPolicy());
+                                  .defaultLoadBalancingPolicy(properties.getDefaultLoadBalancingPolicy());
     }
 
+    /**
+     * 为 Channel 配置安全属性
+     *
+     * @param builder The channel builder to configure.
+     * @param name    The name of the client to configure.
+     */
     @Override
     protected void configureSecurity(final NettyChannelBuilder builder, final String name) {
         final GrpcChannelProperties properties = getPropertiesFor(name);
@@ -95,7 +110,7 @@ public class ShadedNettyChannelFactory extends AbstractChannelFactory<NettyChann
                         requireNonNull(security.getCertificateChain(), "certificateChain not configured");
                 final Resource privateKey = requireNonNull(security.getPrivateKey(), "privateKey not configured");
                 try (InputStream certificateChainStream = certificateChain.getInputStream();
-                        InputStream privateKeyStream = privateKey.getInputStream()) {
+                     InputStream privateKeyStream = privateKey.getInputStream()) {
                     sslContextBuilder.keyManager(certificateChainStream, privateKeyStream,
                             security.getPrivateKeyPassword());
                 } catch (IOException | RuntimeException e) {

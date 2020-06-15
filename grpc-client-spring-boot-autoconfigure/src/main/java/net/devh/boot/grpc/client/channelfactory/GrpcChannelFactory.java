@@ -17,17 +17,18 @@
 
 package net.devh.boot.grpc.client.channelfactory;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
 import io.grpc.Channel;
 import io.grpc.ClientInterceptor;
 import io.grpc.ClientInterceptors;
 import io.grpc.ConnectivityState;
 import io.grpc.ManagedChannel;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
 /**
+ * 根据所给的服务名称，创建 gRPC Channel，实现应当利用连接池以便于优先处理关闭任务
  * This factory creates grpc {@link Channel}s for a given service name. Implementations are encouraged to utilize
  * connection pooling and thus {@link #close() close} should be called before disposing it.
  *
@@ -37,6 +38,7 @@ import io.grpc.ManagedChannel;
 public interface GrpcChannelFactory extends AutoCloseable {
 
     /**
+     * 根据所给的服务名称创建Channel，返回的Channel 会使用全局的 ClientInterceptor
      * Creates a new channel for the given service name. The returned channel will use all globally registered
      * {@link ClientInterceptor}s.
      *
@@ -52,6 +54,7 @@ public interface GrpcChannelFactory extends AutoCloseable {
     }
 
     /**
+     * 根据所给的服务名称和拦截器创建Channel，返回的Channel 会使用全局的 ClientInterceptor，指定的拦截器会追加在全局拦截器后
      * Creates a new channel for the given service name. The returned channel will use all globally registered
      * {@link ClientInterceptor}s.
      *
@@ -64,7 +67,7 @@ public interface GrpcChannelFactory extends AutoCloseable {
      * {@link ClientInterceptors#interceptForward(Channel, ClientInterceptor...)}.
      * </p>
      *
-     * @param name The name of the service.
+     * @param name         The name of the service.
      * @param interceptors A list of additional client interceptors that should be added to the channel.
      * @return The newly created channel for the given service.
      */
@@ -73,6 +76,7 @@ public interface GrpcChannelFactory extends AutoCloseable {
     }
 
     /**
+     * 根据所给的服务名称、拦截器和拦截器是否排序创建Channel
      * Creates a new channel for the given service name. The returned channel will use all globally registered
      * {@link ClientInterceptor}s.
      *
@@ -85,8 +89,8 @@ public interface GrpcChannelFactory extends AutoCloseable {
      * {@link ClientInterceptors#interceptForward(Channel, ClientInterceptor...)}.
      * </p>
      *
-     * @param name The name of the service.
-     * @param interceptors A list of additional client interceptors that should be added to the channel.
+     * @param name             The name of the service.
+     * @param interceptors     A list of additional client interceptors that should be added to the channel.
      * @param sortInterceptors Whether the interceptors (both global and custom) should be sorted before being applied.
      * @return The newly created channel for the given service.
      */

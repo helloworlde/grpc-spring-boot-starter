@@ -58,6 +58,7 @@ public class GrpcChannelsProperties {
     }
 
     /**
+     * 根据服务名称获取 Channel 配置，如果不存在，则会创建新的，没有设置属性的值将会使用全局配置
      * Gets the properties for the given channel. If the properties for the specified channel name do not yet exist,
      * they are created automatically. Before the instance is returned, the unset values are filled with values from the
      * global properties.
