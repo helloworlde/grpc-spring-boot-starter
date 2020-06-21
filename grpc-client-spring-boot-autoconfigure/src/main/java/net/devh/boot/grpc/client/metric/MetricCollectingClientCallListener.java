@@ -17,8 +17,6 @@
 
 package net.devh.boot.grpc.client.metric;
 
-import java.util.function.Function;
-
 import io.grpc.ClientCall;
 import io.grpc.ForwardingClientCallListener.SimpleForwardingClientCallListener;
 import io.grpc.Metadata;
@@ -28,7 +26,10 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 
+import java.util.function.Function;
+
 /**
+ * 用于收集监控信息的客户端调用监听器
  * A simple forwarding client call listener that collects metrics for micrometer.
  *
  * @param <A> The type of message received one or more times from the server.
@@ -41,12 +42,13 @@ class MetricCollectingClientCallListener<A> extends SimpleForwardingClientCallLi
     private final Function<Code, Timer> timerFunction;
 
     /**
+     * 根据所给的参数封装用于收集监控信息的监听器
      * Creates a new delegating ClientCallListener that will wrap the given client call listener to collect metrics.
      *
-     * @param delegate The original call to wrap.
-     * @param registry The registry to save the metrics to.
+     * @param delegate        The original call to wrap.
+     * @param registry        The registry to save the metrics to.
      * @param responseCounter The counter for incoming responses.
-     * @param timerFunction A function that will return a timer for a given status code.
+     * @param timerFunction   A function that will return a timer for a given status code.
      */
     public MetricCollectingClientCallListener(
             final ClientCall.Listener<A> delegate,
@@ -59,12 +61,23 @@ class MetricCollectingClientCallListener<A> extends SimpleForwardingClientCallLi
         this.timerSample = Timer.start(registry);
     }
 
+    /**
+     * 关闭事件
+     *
+     * @param status
+     * @param metadata
+     */
     @Override
     public void onClose(final Status status, final Metadata metadata) {
         this.timerSample.stop(this.timerFunction.apply(status.getCode()));
         super.onClose(status, metadata);
     }
 
+    /**
+     * 调用
+     *
+     * @param responseMessage
+     */
     @Override
     public void onMessage(final A responseMessage) {
         this.responseCounter.increment();

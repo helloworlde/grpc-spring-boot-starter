@@ -35,6 +35,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static java.util.Objects.requireNonNull;
 
 /**
+ * 根据所给的 URI 创建 DiscoveryClientNameResolver
  * A name resolver factory that will create a {@link DiscoveryClientNameResolver} based on the target uri.
  *
  * @author Michael (yidongnan@gmail.com)
@@ -53,6 +54,7 @@ public class DiscoveryClientResolverFactory extends NameResolverProvider {
     private final DiscoveryClient client;
 
     /**
+     * 根据 NameResolverFactory 创建一个Client
      * Creates a new discovery client based name resolver factory.
      *
      * @param client The client to use for the address discovery.

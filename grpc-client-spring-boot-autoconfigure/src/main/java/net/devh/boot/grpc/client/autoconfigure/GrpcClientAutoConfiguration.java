@@ -173,6 +173,14 @@ public class GrpcClientAutoConfiguration {
         return new InProcessOrAlternativeChannelFactory(properties, inProcessChannelFactory, channelFactory);
     }
 
+    /**
+     * 如果服务地址的 Schema 是 in-progress，则使用 InProcessChannelFactory 创建，否则使用 NettyChannelFactory 创建
+     *
+     * @param properties
+     * @param globalClientInterceptorRegistry
+     * @param channelConfigurers
+     * @return
+     */
     // Then try the normal netty channel factory
     @ConditionalOnMissingBean(GrpcChannelFactory.class)
     @ConditionalOnClass(name = {"io.netty.channel.Channel", "io.grpc.netty.NettyChannelBuilder"})
@@ -186,6 +194,14 @@ public class GrpcClientAutoConfiguration {
         return new InProcessOrAlternativeChannelFactory(properties, inProcessChannelFactory, channelFactory);
     }
 
+    /**
+     * 使用 InProcessChannelFactory 创建
+     *
+     * @param properties
+     * @param globalClientInterceptorRegistry
+     * @param channelConfigurers
+     * @return
+     */
     // Finally try the in process channel factory
     @ConditionalOnMissingBean(GrpcChannelFactory.class)
     @Bean

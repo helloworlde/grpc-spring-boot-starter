@@ -28,6 +28,7 @@ import io.micrometer.core.instrument.Timer;
 import java.util.function.Function;
 
 /**
+ * 用于收集监控信息的转发客户端
  * A simple forwarding client call that collects metrics for micrometer.
  *
  * @param <Q> The type of message sent one or more times to the server.
@@ -63,7 +64,9 @@ class MetricCollectingClientCall<Q, A> extends SimpleForwardingClientCall<Q, A> 
 
     @Override
     public void start(final ClientCall.Listener<A> responseListener, final Metadata metadata) {
-        super.start(new MetricCollectingClientCallListener<>(responseListener,
+        // 创建一个调用监听器
+        super.start(
+                new MetricCollectingClientCallListener<>(responseListener,
                         this.registry,
                         this.responseCounter,
                         this.timerFunction),
@@ -72,7 +75,9 @@ class MetricCollectingClientCall<Q, A> extends SimpleForwardingClientCall<Q, A> 
 
     @Override
     public void sendMessage(final Q requestMessage) {
+        //计数器增加
         this.requestCounter.increment();
+        // 调用相应的方法
         super.sendMessage(requestMessage);
     }
 

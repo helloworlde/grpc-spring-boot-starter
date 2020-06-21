@@ -20,6 +20,7 @@ package net.devh.boot.grpc.client.interceptor;
 import io.grpc.ClientInterceptor;
 
 /**
+ * 用于注册全局的拦截器
  * This configurer can be used to register new global {@link ClientInterceptor}s.
  *
  * @author Daniel Theuke (daniel.theuke@heuboe.de)
@@ -28,6 +29,8 @@ import io.grpc.ClientInterceptor;
 public interface GlobalClientInterceptorConfigurer {
 
     /**
+     * 添加要注册到全局的拦截器
+     * <p>
      * Adds the {@link ClientInterceptor}s that should be registered globally to the given registry.
      *
      * @param registry The registry the interceptors should be added to.

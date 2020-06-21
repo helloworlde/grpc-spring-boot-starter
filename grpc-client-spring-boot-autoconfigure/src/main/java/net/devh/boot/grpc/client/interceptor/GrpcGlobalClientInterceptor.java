@@ -17,17 +17,17 @@
 
 package net.devh.boot.grpc.client.interceptor;
 
+import io.grpc.ClientInterceptor;
+import org.springframework.stereotype.Component;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.stereotype.Component;
-
-import io.grpc.ClientInterceptor;
-
 /**
+ * 用于标记全局的拦截器
  * Annotation for gRPC {@link ClientInterceptor}s to apply them globally.
  *
  * @author Daniel Theuke (daniel.theuke@heuboe.de)

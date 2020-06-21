@@ -22,6 +22,9 @@ import io.grpc.stub.AbstractStub;
 import net.devh.boot.grpc.client.channelfactory.GrpcChannelFactory;
 
 /**
+ * GrpcClientBeanPostProcessor 在注入属性之前使用，实现应当根据给定的 Stub 仅调用 AbstractStub#with 方法并返回结果，不能用于
+ * 替换其他不相关的实例
+ * <p>
  * A stub transformer will be used by the {@link GrpcClientBeanPostProcessor} to configure the stubs before they are
  * assigned to their fields. Implementations should only call the {@code AbstractStub#with...} methods on the given
  * stubs and return that result. Implementations should not use this transformer to replace the stub with a unrelated

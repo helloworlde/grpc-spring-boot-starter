@@ -18,6 +18,7 @@
 package net.devh.boot.grpc.client.config;
 
 /**
+ * HTTP2的交互蕾西
  * Identifies the negotiation used for starting up HTTP/2.
  *
  * @see io.grpc.netty.shaded.io.grpc.netty.NegotiationType NegotiationType
