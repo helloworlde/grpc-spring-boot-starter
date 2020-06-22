@@ -17,17 +17,18 @@
 
 package net.devh.boot.grpc.common.codec;
 
+import io.grpc.Codec;
+import org.springframework.stereotype.Component;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.stereotype.Component;
-
-import io.grpc.Codec;
-
 /**
+ * 用于标记 gRPC codec 的注解
+ * <p>
  * Annotation that marks gRPC codecs that should be registered with a gRPC server. This annotation should only be added
  * to beans that implement {@link Codec}.
  *
@@ -41,6 +42,7 @@ import io.grpc.Codec;
 public @interface GrpcCodec {
 
     /**
+     * 指定的 codec 将会放在 Accept-Encoding 的 header 里，默认不放置
      * Advertised codecs will be listed in the {@code Accept-Encoding} header. Defaults to false.
      *
      * @return True, of the codec should be advertised. False otherwise.
@@ -48,6 +50,7 @@ public @interface GrpcCodec {
     boolean advertised() default false;
 
     /**
+     * 返回被修饰的 Bean 应当使用的 codec 的类型，默认是全部
      * Gets the type of codec the annotated bean should be used for.
      *
      * @return The type of codec.

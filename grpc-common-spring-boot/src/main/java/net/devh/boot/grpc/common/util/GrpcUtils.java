@@ -20,6 +20,7 @@ package net.devh.boot.grpc.common.util;
 import io.grpc.MethodDescriptor;
 
 /**
+ * gRPC 工具类
  * Utility class that contains methods to extract some information from grpc classes.
  *
  * @author Daniel Theuke (daniel.theuke@heuboe.de)
@@ -31,7 +32,11 @@ public final class GrpcUtils {
      */
     public static final String CLOUD_DISCOVERY_METADATA_PORT = "gRPC.port";
 
+    private GrpcUtils() {
+    }
+
     /**
+     * 根据所给的方法获取服务的名称
      * Extracts the service name from the given method.
      *
      * @param method The method to get the service name from.
@@ -44,6 +49,7 @@ public final class GrpcUtils {
     }
 
     /**
+     * 根据所给的方法获取方法名
      * Extracts the method name from the given method.
      *
      * @param method The method to get the method name from.
@@ -59,7 +65,5 @@ public final class GrpcUtils {
         }
         return fullMethodName.substring(index + 1);
     }
-
-    private GrpcUtils() {}
 
 }

@@ -17,35 +17,35 @@
 
 package net.devh.boot.grpc.common.codec;
 
-import java.util.Collection;
-
 import com.google.common.collect.ImmutableList;
-
 import io.grpc.Codec;
 import lombok.Getter;
 
+import java.util.Collection;
+
 /**
+ * 包含 gRPC codec 相关的类的集合
  * Container class that contains all relevant information about a grpc codec.
- *
- * @see GrpcCodec
  *
  * @author Michael (yidongnan@gmail.com)
  * @author Daniel Theuke (daniel.theuke@heuboe.de)
+ * @see GrpcCodec
  */
 @Getter
 public class GrpcCodecDefinition {
 
     /**
+     * gzip 的定义
      * The codec definition for gzip.
      */
-    public static final GrpcCodecDefinition GZIP_DEFINITION =
-            new GrpcCodecDefinition(new Codec.Gzip(), true, CodecType.ALL);
+    public static final GrpcCodecDefinition GZIP_DEFINITION = new GrpcCodecDefinition(new Codec.Gzip(), true, CodecType.ALL);
     /**
+     * 不使用 codec 的定义
      * The codec definition for identity (no-op).
      */
-    public static final GrpcCodecDefinition IDENTITY_DEFINITION =
-            new GrpcCodecDefinition(Codec.Identity.NONE, false, CodecType.ALL);
+    public static final GrpcCodecDefinition IDENTITY_DEFINITION = new GrpcCodecDefinition(Codec.Identity.NONE, false, CodecType.ALL);
     /**
+     * gRPC 默认的 codec
      * The default encodings used by gRPC.
      */
     public static final Collection<GrpcCodecDefinition> DEFAULT_DEFINITIONS =
@@ -59,11 +59,13 @@ public class GrpcCodecDefinition {
     private final CodecType codecType;
 
     /**
+     * 创建新的 GrpcCodecDefinition
+     * <p>
      * Creates a new GrpcCodecDefinition.
      *
-     * @param codec The codec bean.
+     * @param codec      The codec bean.
      * @param advertised Whether the codec should be advertised in the headers.
-     * @param codecType The type of the codec.
+     * @param codecType  The type of the codec.
      */
     public GrpcCodecDefinition(final Codec codec, final boolean advertised, final CodecType codecType) {
         this.codec = codec;

@@ -17,12 +17,6 @@
 
 package net.devh.boot.grpc.common.autoconfigure;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
 import io.grpc.Codec;
 import io.grpc.CompressorRegistry;
 import io.grpc.DecompressorRegistry;
@@ -30,8 +24,14 @@ import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.common.codec.AnnotationGrpcCodecDiscoverer;
 import net.devh.boot.grpc.common.codec.GrpcCodecDefinition;
 import net.devh.boot.grpc.common.codec.GrpcCodecDiscoverer;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
+ * 包含所有 codec 相关的client 和 server 的 Bean 的自动配置
  * The auto configuration used by Spring-Boot that contains all codec related beans for clients/servers.
  *
  * @author Daniel Theuke (daniel.theuke@heuboe.de)

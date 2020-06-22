@@ -27,6 +27,9 @@ import org.springframework.cloud.sleuth.autoconfig.TraceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Trace 跟踪配置
+ */
 @Configuration
 @ConditionalOnProperty(value = "spring.sleuth.grpc.enabled", matchIfMissing = true)
 @AutoConfigureAfter(TraceAutoConfiguration.class)

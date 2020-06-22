@@ -18,6 +18,7 @@
 package net.devh.boot.grpc.common.metric;
 
 /**
+ * 监控相关的常量
  * Utility class that contains constants that are used multiple times by different classes.
  *
  * @author Daniel Theuke (daniel.theuke@heuboe.de)
@@ -67,6 +68,7 @@ public final class MetricConstants {
      */
     public static final String TAG_STATUS_CODE = "statusCode";
 
-    private MetricConstants() {}
+    private MetricConstants() {
+    }
 
 }

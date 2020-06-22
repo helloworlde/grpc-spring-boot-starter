@@ -20,6 +20,7 @@ package net.devh.boot.grpc.common.codec;
 import java.util.Collection;
 
 /**
+ * 用于发现 gRPC codec 的接口定义
  * An interface for a bean that will be used to find grpc codecs.
  *
  * @author Daniel Theuke (daniel.theuke@heuboe.de)
@@ -28,6 +29,7 @@ import java.util.Collection;
 public interface GrpcCodecDiscoverer {
 
     /**
+     * 发现可以用于 client 或者 server 的 grpc codec 的 bean
      * Find the grpc codecs that should uses by the client/server.
      *
      * @return The grpc codecs that should be provided. Never null.

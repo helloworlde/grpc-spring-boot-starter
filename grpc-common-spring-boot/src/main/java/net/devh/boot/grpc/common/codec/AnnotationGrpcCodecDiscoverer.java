@@ -17,17 +17,16 @@
 
 package net.devh.boot.grpc.common.codec;
 
-import java.util.Collection;
-
+import com.google.common.collect.ImmutableList;
+import io.grpc.Codec;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-import com.google.common.collect.ImmutableList;
-
-import io.grpc.Codec;
-import lombok.extern.slf4j.Slf4j;
+import java.util.Collection;
 
 /**
+ * 查找 @GrpcCodec 修饰的所有 Bean
  * A {@link GrpcCodecDiscoverer} that searches for beans with the {@link GrpcCodec} annotations.
  *
  * @author Daniel Theuke (daniel.theuke@heuboe.de)
@@ -49,9 +48,13 @@ public class AnnotationGrpcCodecDiscoverer implements ApplicationContextAware, G
             log.debug("Searching for codecs...");
             final String[] beanNames = this.applicationContext.getBeanNamesForAnnotation(GrpcCodec.class);
             final ImmutableList.Builder<GrpcCodecDefinition> builder = ImmutableList.builder();
+
             for (final String beanName : beanNames) {
+                // 寻找 codec 的 Bean
                 final Codec codec = this.applicationContext.getBean(beanName, Codec.class);
+                // 寻找 GrpcCodec 修饰的Bean
                 final GrpcCodec annotation = this.applicationContext.findAnnotationOnBean(beanName, GrpcCodec.class);
+                // 添加到容器中
                 builder.add(new GrpcCodecDefinition(codec, annotation.advertised(), annotation.codecType()));
                 log.debug("Found gRPC codec: {}, bean: {}, class: {}",
                         codec.getMessageEncoding(), beanName, codec.getClass().getName());

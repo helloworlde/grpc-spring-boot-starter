@@ -18,6 +18,7 @@
 package net.devh.boot.grpc.common.codec;
 
 /**
+ * codec 的类型
  * The type of the codec.
  *
  * @author Michael (yidongnan@gmail.com)
@@ -26,16 +27,19 @@ package net.devh.boot.grpc.common.codec;
 public enum CodecType {
 
     /**
+     * codec 应当仅使用压缩
      * The codec should be used for compression only.
      */
     COMPRESS(true, false),
 
     /**
+     * codec 应当仅使用解压
      * The codec should be used for decompression only.
      */
     DECOMPRESS(false, true),
 
     /**
+     * codec 应当使用压缩和解压
      * The codec should be used for both compression and decompression.
      */
     ALL(true, true);
@@ -49,6 +53,7 @@ public enum CodecType {
     }
 
     /**
+     * 相应的 codec 是否应当使用压缩
      * Whether the associated codec should be used for compression.
      *
      * @return True, if the codec can be used for compression. False otherwise.
@@ -58,6 +63,7 @@ public enum CodecType {
     }
 
     /**
+     * 相应的 codec 是否应当使用解压缩
      * Whether the associated codec should be used for decompression.
      *
      * @return True, if the codec can be used for decompression. False otherwise.
