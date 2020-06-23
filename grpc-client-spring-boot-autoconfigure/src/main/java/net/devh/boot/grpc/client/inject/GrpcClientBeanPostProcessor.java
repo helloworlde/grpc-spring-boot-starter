@@ -106,7 +106,7 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
                         throw new BeanDefinitionStoreException("Method " + method + " doesn't have exactly one parameter.");
                     }
                     ReflectionUtils.makeAccessible(method);
-                    // 为属性设置 Stub
+                    // 为方法设置 Stub
                     ReflectionUtils.invokeMethod(method, bean, processInjectionPoint(method, paramTypes[0], annotation));
                 }
             }
